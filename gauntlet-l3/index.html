@@ -1,0 +1,1650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOW Mastery - Gauntlet L3: Economic Policy Simulator</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 1100px;
+            margin: 0 auto;
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .game-area {
+            padding: 40px;
+        }
+        
+        .scenario {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 8px;
+        }
+        
+        .scenario h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .indicator {
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .indicator h3 {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        
+        .indicator .value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .indicator .change {
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+        
+        .indicator.good {
+            border-color: #28a745;
+        }
+        
+        .indicator.good .value {
+            color: #28a745;
+        }
+        
+        .indicator.bad {
+            border-color: #dc3545;
+        }
+        
+        .indicator.bad .value {
+            color: #dc3545;
+        }
+        
+        .indicator.warning {
+            border-color: #ffc107;
+        }
+        
+        .indicator.warning .value {
+            color: #ffc107;
+        }
+        
+        .event-banner {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            display: none;
+        }
+        
+        .event-banner.show {
+            display: block;
+            animation: slideIn 0.5s;
+        }
+        
+        .event-banner h3 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .policy-section {
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+        
+        .policy-section h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+        
+        .policy-options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .policy-option {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .policy-option:hover {
+            border-color: #667eea;
+            background: #f8f9fa;
+        }
+        
+        .policy-option.selected {
+            border-color: #667eea;
+            background: #e7f3ff;
+        }
+        
+        .policy-option input[type="radio"] {
+            margin-right: 15px;
+            transform: scale(1.3);
+            cursor: pointer;
+        }
+        
+        .policy-option label {
+            flex: 1;
+            cursor: pointer;
+        }
+        
+        .policy-option .title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .policy-option .effect {
+            font-size: 0.9em;
+            color: #666;
+        }
+        
+        .slider-group {
+            margin-top: 20px;
+        }
+        
+        .slider-item {
+            margin-bottom: 15px;
+        }
+        
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: #ddd;
+            outline: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+        }
+        
+        .emergency-section {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .emergency-section.used {
+            background: #f8f9fa;
+            border-color: #ddd;
+            opacity: 0.6;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2em;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            margin-top: 20px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .feedback {
+            background: #d4edda;
+            border: 2px solid #28a745;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 25px 0;
+            display: none;
+        }
+        
+        .feedback.show {
+            display: block;
+            animation: slideIn 0.5s;
+        }
+        
+        .feedback h3 {
+            color: #155724;
+            margin-bottom: 15px;
+            font-size: 1.4em;
+        }
+        
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .result-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .result-item .label {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .result-item .numbers {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .result-item .change {
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+        
+        .analysis-box {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 8px;
+        }
+        
+        .analysis-box h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .chart-container {
+            margin: 30px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+        }
+        
+        .results-screen {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .results-screen.show {
+            display: block;
+        }
+        
+        .results-screen h2 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+        
+        .claim-code {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            font-size: 2em;
+            font-weight: bold;
+            letter-spacing: 3px;
+            margin: 30px 0;
+            cursor: pointer;
+            transition: transform 0.3s;
+            word-break: break-all;
+        }
+        
+        .claim-code:hover {
+            transform: scale(1.05);
+        }
+        
+        .performance-summary {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 30px;
+            margin: 30px 0;
+            text-align: left;
+        }
+        
+        .performance-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 0;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .performance-row:last-child {
+            border-bottom: none;
+        }
+        
+        .download-btn {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .info-box {
+            background: #e7f3ff;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            font-size: 0.95em;
+        }
+        
+        .info-box strong {
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏛️ ECONOMIC POLICY SIMULATOR</h1>
+            <p>BOW Mastery Layer - Gauntlet Level 3</p>
+        </div>
+        
+        <!-- GAME SCREEN -->
+        <div class="game-area" id="gameScreen">
+            <div class="scenario">
+                <h2>🎯 Your Mission</h2>
+                <p>You are the <strong>Chief Economic Advisor</strong> for a mid-sized city. The largest factory just closed, laying off 2,000 workers. The city is in crisis.</p>
+                <p style="margin-top: 15px;">
+                    <strong>Your Goal:</strong> Balance unemployment, inflation, and economic growth over 8 quarters (2 years). Keep public approval above 50% or you'll be fired!
+                </p>
+                <p style="margin-top: 10px;">
+                    <strong>Victory:</strong> Approval ≥60% + Hit at least 2 of 3 targets (Unemployment <6%, Inflation 1-3%, GDP Growth >2%)
+                </p>
+            </div>
+            
+            <div class="event-banner" id="eventBanner">
+                <h3>📰 <span id="eventTitle">Breaking News</span></h3>
+                <p id="eventText"></p>
+            </div>
+            
+            <div class="dashboard">
+                <div class="indicator" id="quarterCard">
+                    <h3>Quarter</h3>
+                    <div class="value" id="quarterDisplay">1 of 8</div>
+                    <div class="change">Spring 2025</div>
+                </div>
+                <div class="indicator" id="approvalCard">
+                    <h3>Your Job Approval</h3>
+                    <div class="value" id="approvalDisplay">45%</div>
+                    <div class="change" id="approvalChange">Starting</div>
+                </div>
+                <div class="indicator" id="unemploymentCard">
+                    <h3>Unemployment</h3>
+                    <div class="value" id="unemploymentDisplay">12.0%</div>
+                    <div class="change" id="unemploymentChange">Crisis Level</div>
+                </div>
+                <div class="indicator" id="inflationCard">
+                    <h3>Inflation</h3>
+                    <div class="value" id="inflationDisplay">2.0%</div>
+                    <div class="change" id="inflationChange">Stable</div>
+                </div>
+                <div class="indicator" id="gdpCard">
+                    <h3>GDP Growth</h3>
+                    <div class="value" id="gdpDisplay">-3.0%</div>
+                    <div class="change" id="gdpChange">Recession</div>
+                </div>
+                <div class="indicator" id="budgetCard">
+                    <h3>Budget</h3>
+                    <div class="value" id="budgetDisplay">$50M</div>
+                    <div class="change" id="budgetChange">Available</div>
+                </div>
+            </div>
+            
+            <h2 style="color: #667eea; margin-bottom: 20px;">💼 Quarter <span id="quarterNumber">1</span> Policy Decisions</h2>
+            
+            <!-- DYNAMIC POLICY CONTAINER -->
+            <div id="policiesContainer"></div>
+            
+            <button class="btn" id="submitQuarter">Submit Quarter <span id="submitQuarterNumber">1</span> Decisions</button>
+            
+            <div class="feedback" id="feedback">
+                <h3 id="feedbackTitle">Quarter Results</h3>
+                <div class="results-grid">
+                    <div class="result-item">
+                        <div class="label">Unemployment</div>
+                        <div class="numbers" id="resultUnemployment">-</div>
+                        <div class="change" id="resultUnemploymentChange">-</div>
+                    </div>
+                    <div class="result-item">
+                        <div class="label">Inflation</div>
+                        <div class="numbers" id="resultInflation">-</div>
+                        <div class="change" id="resultInflationChange">-</div>
+                    </div>
+                    <div class="result-item">
+                        <div class="label">GDP Growth</div>
+                        <div class="numbers" id="resultGDP">-</div>
+                        <div class="change" id="resultGDPChange">-</div>
+                    </div>
+                    <div class="result-item">
+                        <div class="label">Your Approval</div>
+                        <div class="numbers" id="resultApproval">-</div>
+                        <div class="change" id="resultApprovalChange">-</div>
+                    </div>
+                </div>
+                
+                <div class="analysis-box">
+                    <h4>💭 Economic Analysis</h4>
+                    <p id="analysisText">-</p>
+                </div>
+                
+                <div id="newsBox" style="display: none;">
+                    <div class="analysis-box" style="border-color: #ffc107;">
+                        <h4>📰 Breaking News</h4>
+                        <p id="newsText">-</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chart-container">
+                <canvas id="performanceChart"></canvas>
+            </div>
+        </div>
+        
+        <!-- RESULTS SCREEN -->
+        <div class="results-screen" id="resultsScreen">
+            <h2 id="finalTitle">🎉 Term Complete!</h2>
+            
+            <div class="claim-code" id="claimCode" onclick="copyCode()">
+                LOADING...
+            </div>
+            <p style="color: #666; margin-top: -20px;">Click to copy your claim code</p>
+            
+            <div class="performance-summary">
+                <h3 style="color: #667eea; margin-bottom: 20px;">📊 Final Performance</h3>
+                <div class="performance-row">
+                    <span><strong>Final Approval Rating:</strong></span>
+                    <span id="finalApproval">0%</span>
+                </div>
+                <div class="performance-row">
+                    <span><strong>Final Unemployment:</strong></span>
+                    <span id="finalUnemployment">0%</span>
+                </div>
+                <div class="performance-row">
+                    <span><strong>Final Inflation:</strong></span>
+                    <span id="finalInflation">0%</span>
+                </div>
+                <div class="performance-row">
+                    <span><strong>Final GDP Growth:</strong></span>
+                    <span id="finalGDP">0%</span>
+                </div>
+                <div class="performance-row">
+                    <span><strong>Final Budget:</strong></span>
+                    <span id="finalBudget">$0M</span>
+                </div>
+                <div class="performance-row">
+                    <span><strong>Targets Hit:</strong></span>
+                    <span id="targetsHit">0 of 3</span>
+                </div>
+                <div class="performance-row">
+                    <span><strong>Emergency Fund Used:</strong></span>
+                    <span id="emergencyUsed">No</span>
+                </div>
+                <div class="performance-row">
+                    <span><strong>Mastery Tier:</strong></span>
+                    <span id="masteryLevel">Bronze</span>
+                </div>
+                <div class="performance-row">
+                    <span><strong>XP Earned:</strong></span>
+                    <span id="xpEarned">100 XP</span>
+                </div>
+            </div>
+            
+            <div class="analysis-box">
+                <h4>🎯 Your Economic Strategy</h4>
+                <p id="finalAnalysis">Loading analysis...</p>
+            </div>
+            
+            <button class="btn download-btn" onclick="downloadResults()">
+                📥 Download Results (PDF)
+            </button>
+            
+            <button class="btn" onclick="location.reload()">
+                🔄 Play Again
+            </button>
+            
+            <p style="margin-top: 30px; color: #666; font-size: 1.1em;">
+                <strong>Submit this code in the BOW Finish Form to claim your XP!</strong>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // PRE-GENERATED CLAIM CODES
+        const CLAIM_CODES = {
+            GOLD: [
+                'GAUNTLET-L3-GOLD-ECA9K2',
+                'GAUNTLET-L3-GOLD-PKN7M4',
+                'GAUNTLET-L3-GOLD-WRT3Q8'
+            ],
+            SILVER: [
+                'GAUNTLET-L3-SILVER-BDH5L6',
+                'GAUNTLET-L3-SILVER-XFJ2N9',
+                'GAUNTLET-L3-SILVER-YGP4T7'
+            ],
+            BRONZE: [
+                'GAUNTLET-L3-BRONZE-CMV8R3',
+                'GAUNTLET-L3-BRONZE-QNZ6S1',
+                'GAUNTLET-L3-BRONZE-UKW9H5'
+            ]
+        };
+        
+        // Track which codes have been used (client-side only)
+        const usedCodes = new Set();
+        
+        function getAvailableCode(tier) {
+            const codes = CLAIM_CODES[tier];
+            for (const code of codes) {
+                if (!usedCodes.has(code)) {
+                    usedCodes.add(code);
+                    return code;
+                }
+            }
+            // If all codes used, generate a random one
+            const random = Math.random().toString(36).substring(2, 8).toUpperCase();
+            return `GAUNTLET-L3-${tier}-${random}`;
+        }
+        
+        // MASSIVELY EXPANDED DYNAMIC POLICY OPTIONS LIBRARY
+        const POLICY_OPTIONS = {
+            // FISCAL POLICIES (20+ options)
+            fiscal_crisis_unemployment: [
+                { id: 'emergency_jobs', title: 'Emergency Jobs Program (+$10M)', effect: 'Hire 2,000 workers immediately for public works. Fast but expensive.', impact: { unemployment: -1.5, gdp: 2.0, inflation: 0.7, budget: -10, approval: 8 } },
+                { id: 'wage_subsidy', title: 'Wage Subsidy for Businesses (+$7M)', effect: 'Pay companies to hire unemployed workers. Shares the cost.', impact: { unemployment: -1.1, gdp: 1.3, budget: -7, approval: 6 } },
+                { id: 'public_housing', title: 'Public Housing Construction (+$8M)', effect: 'Build affordable housing. Creates construction jobs.', impact: { unemployment: -0.9, gdp: 1.5, budget: -8, approval: 7 } },
+                { id: 'minimal', title: 'Minimal Action (+$2M)', effect: 'Small job training program. Not enough to make big impact.', impact: { unemployment: -0.3, gdp: 0.3, budget: -2, approval: -3 } }
+            ],
+            fiscal_inflation_crisis: [
+                { id: 'austerity', title: 'Austerity Package (-$10M)', effect: 'Deep cuts to cool inflation. Will hurt jobs and growth badly.', impact: { unemployment: 1.5, gdp: -2.2, inflation: -1.5, budget: 10, approval: -10 } },
+                { id: 'freeze_spending', title: 'Freeze All Spending', effect: 'No new programs until inflation is under control.', impact: { unemployment: 0.6, gdp: -0.8, inflation: -0.9, budget: 0, approval: -6 } },
+                { id: 'selective_cuts', title: 'Cut Non-Essential Programs (-$5M)', effect: 'Targeted cuts to avoid hurting people most.', impact: { unemployment: 0.4, gdp: -0.6, inflation: -0.6, budget: 5, approval: -4 } },
+                { id: 'do_nothing', title: 'Wait It Out', effect: 'Hope inflation drops on its own. Risky.', impact: { inflation: 0.4, approval: -5 } }
+            ],
+            fiscal_recession: [
+                { id: 'mega_stimulus', title: 'Mega Stimulus Package (+$15M)', effect: 'Go big or go home. Massive economic boost but risky.', impact: { unemployment: -2.0, gdp: 4.0, inflation: 1.5, budget: -15, approval: 10 } },
+                { id: 'infrastructure_now', title: 'Infrastructure Now (+$10M)', effect: 'Fast-track bridge and road projects.', impact: { unemployment: -1.2, gdp: 2.5, inflation: 0.6, budget: -10, approval: 8 } },
+                { id: 'business_bailout', title: 'Business Bailout Fund (+$8M)', effect: 'Save struggling companies to prevent layoffs.', impact: { unemployment: -0.8, gdp: 1.2, budget: -8, approval: 2 } },
+                { id: 'cautious', title: 'Cautious Stimulus (+$4M)', effect: 'Small boost. Might not be enough.', impact: { unemployment: -0.4, gdp: 0.8, budget: -4, approval: 0 } }
+            ],
+            fiscal_deficit_crisis: [
+                { id: 'major_cuts', title: 'Major Budget Cuts (-$8M)', effect: 'Get deficit under control. Will hurt services.', impact: { unemployment: 0.8, gdp: -1.2, budget: 8, approval: -7 } },
+                { id: 'efficiency', title: 'Efficiency Reforms (Save $5M)', effect: 'Cut waste without cutting services. Harder than it sounds.', impact: { gdp: -0.3, budget: 5, approval: 2 } },
+                { id: 'maintain', title: 'Keep Spending, Fix Later', effect: 'Kick the can down the road. Deficit grows.', impact: { approval: -3 } },
+                { id: 'modest_cuts', title: 'Modest Cuts (-$3M)', effect: 'Small steps toward balance.', impact: { unemployment: 0.3, gdp: -0.4, budget: 3, approval: -2 } }
+            ],
+            fiscal_balanced: [
+                { id: 'growth_invest', title: 'Growth Investment (+$6M)', effect: 'Invest in future growth - education and tech.', impact: { gdp: 1.2, unemployment: -0.5, budget: -6, approval: 5 }, futureImpact: { gdp: 0.8, unemployment: -0.3 } },
+                { id: 'maintain', title: 'Stay The Course', effect: 'Things are working. Don\'t mess it up.', impact: { approval: 1 } },
+                { id: 'save_surplus', title: 'Build Budget Surplus (-$2M)', effect: 'Save money for future crisis.', impact: { gdp: -0.2, budget: 2, approval: 0 } },
+                { id: 'boost_services', title: 'Boost Public Services (+$4M)', effect: 'Improve schools and healthcare.', impact: { unemployment: -0.3, budget: -4, approval: 6 } }
+            ],
+            
+            // TAX POLICIES (15+ options)
+            tax_deficit_crisis: [
+                { id: 'wealth_tax', title: 'New Wealth Tax on Top 1% (+$9M)', effect: 'Tax the ultra-rich. Popular but they might leave.', impact: { budget: 9, approval: 8, gdp: -0.5 } },
+                { id: 'corporate_tax', title: 'Corporate Tax Increase (+$7M)', effect: 'Make big business pay more. May slow hiring.', impact: { budget: 7, approval: 4, unemployment: 0.4, gdp: -0.6 } },
+                { id: 'vat_increase', title: 'Sales Tax Increase (+$6M)', effect: 'Everyone pays more on purchases. Regressive.', impact: { budget: 6, inflation: 0.5, approval: -8, gdp: -0.8 } },
+                { id: 'small_raise', title: 'Small Across-Board Raise (+$3M)', effect: 'Modest increase shared by all.', impact: { budget: 3, approval: -5, gdp: -0.3 } }
+            ],
+            tax_boom_economy: [
+                { id: 'major_cut', title: 'Major Tax Cut for All (-$10M)', effect: 'Put money back in everyone\'s pocket. Big gamble.', impact: { gdp: 2.0, unemployment: -0.6, inflation: 1.0, budget: -10, approval: 12 } },
+                { id: 'middle_class_cut', title: 'Middle Class Tax Cut (-$6M)', effect: 'Help working families. Popular and effective.', impact: { gdp: 1.2, unemployment: -0.4, inflation: 0.5, budget: -6, approval: 9 } },
+                { id: 'investment_incentive', title: 'Investment Tax Credit (-$5M)', effect: 'Encourage business investment.', impact: { gdp: 1.5, unemployment: -0.5, budget: -5, approval: 4 } },
+                { id: 'maintain', title: 'Keep Current Rates', effect: 'Why fix what isn\'t broken?', impact: { approval: 0 } }
+            ],
+            tax_unemployment_crisis: [
+                { id: 'payroll_cut', title: 'Suspend Payroll Tax (-$8M)', effect: 'Make hiring cheaper. Encourages jobs.', impact: { unemployment: -0.9, budget: -8, approval: 7 } },
+                { id: 'hiring_credit', title: 'Hiring Tax Credit (-$5M)', effect: 'Pay companies to hire unemployed workers.', impact: { unemployment: -0.7, budget: -5, approval: 6 } },
+                { id: 'maintain', title: 'No Tax Changes', effect: 'Focus budget elsewhere.', impact: { approval: -2 } }
+            ],
+            tax_balanced: [
+                { id: 'simplify', title: 'Tax Code Simplification', effect: 'Make taxes easier. Slight revenue boost from closing loopholes.', impact: { budget: 2, approval: 5, gdp: 0.3 } },
+                { id: 'green_credits', title: 'Green Energy Tax Credits (-$4M)', effect: 'Encourage renewable energy investment.', impact: { budget: -4, approval: 6, gdp: 0.5 }, futureImpact: { gdp: 0.8 } },
+                { id: 'maintain', title: 'Keep Current System', effect: 'No changes needed.', impact: { approval: 0 } },
+                { id: 'minor_adjust', title: 'Minor Adjustments (+$2M)', effect: 'Small tweaks to raise a bit more.', impact: { budget: 2, approval: -2 } }
+            ],
+            
+            // SPECIALIZED POLICIES (30+ unique options across categories)
+            labor_high_unemployment: [
+                { id: 'apprentice', title: 'National Apprenticeship Program ($5M)', effect: 'Train young workers in skilled trades. Takes time.', impact: { budget: -5, approval: 7 }, futureImpact: { unemployment: -0.8, gdp: 1.0 } },
+                { id: 'min_wage_up', title: 'Raise Minimum Wage to $15/hour', effect: 'Help low-income workers. Some job losses possible.', impact: { unemployment: 0.4, approval: 8, inflation: 0.5, gdp: 0.6 } },
+                { id: 'job_guarantee', title: 'Federal Job Guarantee ($9M)', effect: 'Government hires anyone who wants work. Expensive.', impact: { unemployment: -2.0, budget: -9, approval: 10, inflation: 0.8 } },
+                { id: 'nothing', title: 'Let Market Adjust', effect: 'Jobs will come back naturally... eventually.', impact: { approval: -5 } }
+            ],
+            labor_balanced: [
+                { id: 'flexibility', title: 'Flexible Work Regulations', effect: 'Make it easier for part-time and remote work.', impact: { unemployment: -0.3, approval: 4 } },
+                { id: 'family_leave', title: 'Paid Family Leave Program ($3M)', effect: 'Popular social benefit.', impact: { budget: -3, approval: 9, gdp: 0.2 } },
+                { id: 'union_support', title: 'Strengthen Union Rights', effect: 'Help workers organize. Business pushback likely.', impact: { approval: 6, gdp: -0.2 } },
+                { id: 'nothing', title: 'No Labor Changes', effect: 'Focus elsewhere.', impact: {} }
+            ],
+            
+            innovation_recession: [
+                { id: 'tech_hub', title: 'Build Tech Innovation Hub ($7M)', effect: 'Attract tech companies. Long-term play.', impact: { budget: -7, approval: 5, gdp: 0.5 }, futureImpact: { unemployment: -1.0, gdp: 2.0 } },
+                { id: 'startup_fund', title: 'Startup Investment Fund ($5M)', effect: 'Back local entrepreneurs.', impact: { budget: -5, gdp: 0.8, approval: 6 } },
+                { id: 'university', title: 'Partner with University ($4M)', effect: 'Research and development partnerships.', impact: { budget: -4, approval: 4 }, futureImpact: { gdp: 1.2 } },
+                { id: 'skip', title: 'Focus on Immediate Needs', effect: 'Innovation can wait.', impact: { approval: -1 } }
+            ],
+            innovation_boom: [
+                { id: 'ai_center', title: 'AI Research Center ($8M)', effect: 'Position city as AI leader.', impact: { budget: -8, gdp: 1.0, approval: 7 }, futureImpact: { gdp: 2.5, unemployment: -0.8 } },
+                { id: 'biotech', title: 'Biotech Incentives ($6M)', effect: 'Attract pharmaceutical and medical research.', impact: { budget: -6, gdp: 0.8, approval: 6 } },
+                { id: 'creative_district', title: 'Creative Industries District ($5M)', effect: 'Support arts, film, design sectors.', impact: { budget: -5, gdp: 0.6, unemployment: -0.4, approval: 8 } },
+                { id: 'skip', title: 'Maintain Current Focus', effect: 'Already doing well.', impact: {} }
+            ],
+            
+            trade_manufacturing_decline: [
+                { id: 'tariff_protect', title: 'Protective Tariffs on Imports', effect: 'Save manufacturing jobs. Raises prices.', impact: { unemployment: -0.7, inflation: 0.9, approval: 5 } },
+                { id: 'reshoring', title: 'Reshoring Incentives ($6M)', effect: 'Pay companies to bring manufacturing back.', impact: { budget: -6, unemployment: -0.8, approval: 7 }, futureImpact: { unemployment: -0.5 } },
+                { id: 'training', title: 'Manufacturing Retraining ($4M)', effect: 'Help factory workers learn new skills.', impact: { budget: -4, approval: 5 }, futureImpact: { unemployment: -0.6 } },
+                { id: 'accept', title: 'Embrace Service Economy', effect: 'Can\'t fight globalization.', impact: { approval: -6 } }
+            ],
+            trade_export_focus: [
+                { id: 'new_markets', title: 'Negotiate New Trade Deals', effect: 'Open markets for local exports.', impact: { gdp: 1.5, unemployment: -0.4, approval: 5 } },
+                { id: 'port_invest', title: 'Invest in Port Infrastructure ($7M)', effect: 'Improve export logistics.', impact: { budget: -7, gdp: 1.0, approval: 4 }, futureImpact: { gdp: 1.5 } },
+                { id: 'export_subsidy', title: 'Export Subsidies ($4M)', effect: 'Help local companies compete abroad.', impact: { budget: -4, gdp: 0.8, approval: 4 } },
+                { id: 'status_quo', title: 'Maintain Current Trade Policy', effect: 'No changes.', impact: {} }
+            ],
+            
+            housing_crisis: [
+                { id: 'public_housing', title: 'Mass Public Housing ($10M)', effect: 'Build thousands of affordable units.', impact: { budget: -10, unemployment: -0.8, approval: 9 } },
+                { id: 'rent_control', title: 'Implement Rent Control', effect: 'Cap rent increases. May reduce housing supply.', impact: { approval: 10, gdp: -0.5 } },
+                { id: 'developer_incentive', title: 'Developer Incentives ($5M)', effect: 'Encourage private affordable housing.', impact: { budget: -5, approval: 4 }, futureImpact: { approval: 5 } },
+                { id: 'vouchers', title: 'Housing Vouchers ($6M)', effect: 'Help low-income families pay rent.', impact: { budget: -6, approval: 8 } }
+            ],
+            
+            education_crisis: [
+                { id: 'teacher_pay', title: 'Major Teacher Pay Raise ($5M)', effect: 'Attract and retain good teachers.', impact: { budget: -5, approval: 9 }, futureImpact: { gdp: 1.2 } },
+                { id: 'college_free', title: 'Free Community College ($7M)', effect: 'Remove barriers to higher education.', impact: { budget: -7, approval: 11 }, futureImpact: { unemployment: -0.8, gdp: 1.5 } },
+                { id: 'tech_schools', title: 'Expand Technical Schools ($4M)', effect: 'Train workers for modern jobs.', impact: { budget: -4, approval: 7 }, futureImpact: { unemployment: -0.6 } },
+                { id: 'minor', title: 'Small Education Boost ($2M)', effect: 'Modest improvements.', impact: { budget: -2, approval: 3 } }
+            ],
+            
+            healthcare_crisis: [
+                { id: 'universal', title: 'Universal Healthcare ($12M/quarter)', effect: 'Free healthcare for all. Massive undertaking.', impact: { budget: -12, approval: 15, gdp: -0.5 } },
+                { id: 'public_option', title: 'Public Health Insurance ($7M)', effect: 'Compete with private insurance.', impact: { budget: -7, approval: 11, gdp: -0.2 } },
+                { id: 'subsidies', title: 'Expand Health Subsidies ($5M)', effect: 'Help people afford insurance.', impact: { budget: -5, approval: 8 } },
+                { id: 'minor', title: 'Improve Existing Programs ($2M)', effect: 'Small fixes.', impact: { budget: -2, approval: 3 } }
+            ],
+            
+            emergency: [
+                { id: 'stimulus_checks', title: 'Direct Stimulus Checks ($20M)', effect: '$1,000 to every household RIGHT NOW. Massive boost!', impact: { gdp: 4, approval: 18, inflation: 1.2, budget: -20 }, oneTime: true },
+                { id: 'major_employer', title: 'Attract Fortune 500 Company ($20M)', effect: '2,000+ jobs over 3 quarters. Transforms economy.', impact: { budget: -20, approval: 8 }, futureImpact: { unemployment: -2.0, gdp: 2.0 }, oneTime: true },
+                { id: 'disaster_fund', title: 'Emergency Reserve Fund ($20M)', effect: 'Insurance against crisis. Reduces impact of bad events by 50%.', impact: { budget: -20, approval: 4 }, protection: true, oneTime: true },
+                { id: 'infrastructure_blitz', title: 'Infrastructure Blitz ($20M)', effect: 'Fast-track 10 major projects at once.', impact: { unemployment: -1.5, gdp: 3.0, inflation: 0.8, budget: -20, approval: 12 }, oneTime: true },
+                { id: 'save', title: 'Save for True Emergency', effect: 'Keep it as insurance.', impact: {} }
+            ]
+        };
+        
+        // SMART POLICY SELECTION LOGIC
+        function selectPolicySet(category, state) {
+            const sets = POLICY_OPTIONS;
+            
+            // FISCAL POLICY - condition-based
+            if (category === 'fiscal') {
+                if (state.unemployment > 10) return sets.fiscal_crisis_unemployment;
+                if (state.inflation > 5) return sets.fiscal_inflation_crisis;
+                if (state.gdp < -1) return sets.fiscal_recession;
+                if (state.budgetDeficit > 30) return sets.fiscal_deficit_crisis;
+                return sets.fiscal_balanced;
+            }
+            
+            // TAX POLICY - condition-based
+            if (category === 'tax') {
+                if (state.budgetDeficit > 25) return sets.tax_deficit_crisis;
+                if (state.gdp > 2 && state.unemployment < 7) return sets.tax_boom_economy;
+                if (state.unemployment > 9) return sets.tax_unemployment_crisis;
+                return sets.tax_balanced;
+            }
+            
+            // LABOR - condition-based
+            if (category === 'labor') {
+                if (state.unemployment > 8) return sets.labor_high_unemployment;
+                return sets.labor_balanced;
+            }
+            
+            // INNOVATION - condition-based
+            if (category === 'innovation') {
+                if (state.gdp < 0) return sets.innovation_recession;
+                return sets.innovation_boom;
+            }
+            
+            // TRADE - condition-based
+            if (category === 'trade') {
+                if (state.unemployment > 8) return sets.trade_manufacturing_decline;
+                return sets.trade_export_focus;
+            }
+            
+            // EMERGENCY
+            if (category === 'emergency') return sets.emergency;
+            
+            // SPECIAL CATEGORIES (appear randomly)
+            if (category === 'housing') return sets.housing_crisis;
+            if (category === 'education') return sets.education_crisis;
+            if (category === 'healthcare') return sets.healthcare_crisis;
+            
+            return [];
+        }
+        
+        // Generate diverse quarterly policies
+        function generateQuarterPolicies(quarter) {
+            const policies = [];
+            const state = gameState;
+            
+            // ALWAYS: Fiscal policy (but changes every time)
+            policies.push({
+                category: 'fiscal',
+                title: '💰 Government Spending',
+                required: true,
+                options: selectPolicySet('fiscal', state)
+            });
+            
+            // ALWAYS: Tax policy (but changes every time)
+            policies.push({
+                category: 'tax',
+                title: '📊 Tax Policy',
+                required: true,
+                options: selectPolicySet('tax', state)
+            });
+            
+            // DYNAMIC: Choose 1-2 from special categories based on conditions and randomness
+            const specialCategories = [];
+            
+            // Add labor if unemployment is an issue
+            if (state.unemployment > 7 || Math.random() < 0.3) {
+                specialCategories.push({
+                    category: 'labor',
+                    title: '👷 Labor & Employment',
+                    options: selectPolicySet('labor', state)
+                });
+            }
+            
+            // Add innovation if economy needs boost
+            if (state.gdp < 1 || Math.random() < 0.3) {
+                specialCategories.push({
+                    category: 'innovation',
+                    title: '🚀 Innovation & Growth',
+                    options: selectPolicySet('innovation', state)
+                });
+            }
+            
+            // Add trade
+            if (Math.random() < 0.4) {
+                specialCategories.push({
+                    category: 'trade',
+                    title: '🌍 Trade Policy',
+                    options: selectPolicySet('trade', state)
+                });
+            }
+            
+            // Add housing if random or if economy struggling
+            if (Math.random() < 0.2 || (state.unemployment > 8 && quarter > 3)) {
+                specialCategories.push({
+                    category: 'housing',
+                    title: '🏠 Housing Policy',
+                    options: selectPolicySet('housing', state)
+                });
+            }
+            
+            // Add education randomly
+            if (Math.random() < 0.25) {
+                specialCategories.push({
+                    category: 'education',
+                    title: '📚 Education Policy',
+                    options: selectPolicySet('education', state)
+                });
+            }
+            
+            // Add healthcare randomly
+            if (Math.random() < 0.2) {
+                specialCategories.push({
+                    category: 'healthcare',
+                    title: '🏥 Healthcare Policy',
+                    options: selectPolicySet('healthcare', state)
+                });
+            }
+            
+            // Randomly select 1-2 special categories
+            const numSpecial = Math.random() < 0.6 ? 1 : 2;
+            for (let i = 0; i < numSpecial && specialCategories.length > 0; i++) {
+                const randomIndex = Math.floor(Math.random() * specialCategories.length);
+                policies.push(specialCategories.splice(randomIndex, 1)[0]);
+            }
+            
+            // EMERGENCY (if not used)
+            if (!state.emergencyUsed) {
+                policies.push({
+                    category: 'emergency',
+                    title: '🚨 Emergency Fund ($20M - Use Once!)',
+                    required: true,
+                    options: selectPolicySet('emergency', state),
+                    special: true
+                });
+            }
+            
+            return policies;
+        }
+        
+        // Render policies dynamically
+        function renderPolicies() {
+            const container = document.getElementById('policiesContainer');
+            container.innerHTML = '';
+            
+            const policies = generateQuarterPolicies(gameState.quarter);
+            
+            policies.forEach((policy, policyIndex) => {
+                const section = document.createElement('div');
+                section.className = policy.special ? 'emergency-section' : 'policy-section';
+                section.id = policy.category + 'Section';
+                
+                const title = document.createElement('h3');
+                title.innerHTML = `${policyIndex + 1}️⃣ ${policy.title}`;
+                section.appendChild(title);
+                
+                const optionsContainer = document.createElement('div');
+                optionsContainer.className = 'policy-options';
+                
+                policy.options.forEach((option, optionIndex) => {
+                    const optionDiv = document.createElement('div');
+                    optionDiv.className = 'policy-option' + (optionIndex === (policy.options.length - 1) ? ' selected' : '');
+                    optionDiv.onclick = () => selectPolicy(policy.category, option.id);
+                    
+                    const radio = document.createElement('input');
+                    radio.type = 'radio';
+                    radio.name = policy.category;
+                    radio.id = policy.category + '_' + option.id;
+                    radio.value = option.id;
+                    radio.checked = (optionIndex === policy.options.length - 1);
+                    
+                    const label = document.createElement('label');
+                    label.htmlFor = radio.id;
+                    label.innerHTML = `
+                        <div class="title">${option.title}</div>
+                        <div class="effect">${option.effect}</div>
+                    `;
+                    
+                    optionDiv.appendChild(radio);
+                    optionDiv.appendChild(label);
+                    optionsContainer.appendChild(optionDiv);
+                });
+                
+                section.appendChild(optionsContainer);
+                container.appendChild(section);
+            });
+        }
+        
+        // GAME STATE
+        const gameState = {
+            quarter: 1,
+            maxQuarters: 8,
+            approval: 45,
+            unemployment: 12.0,
+            inflation: 2.0,
+            gdp: -3.0,
+            budget: 50,
+            budgetDeficit: 0,
+            emergencyUsed: false,
+            interestRate: 3.0,
+            history: [],
+            decisions: [],
+            startTime: new Date()
+        };
+        
+        const QUARTERS = ['Spring 2025', 'Summer 2025', 'Fall 2025', 'Winter 2025',
+                         'Spring 2026', 'Summer 2026', 'Fall 2026', 'Winter 2026'];
+        
+        // RANDOM EVENTS
+        const EVENTS = [
+            null, // Quarter 1: no event
+            {
+                title: 'National Recession Warning',
+                text: 'Federal economists predict economic slowdown nationwide. Consumer confidence is falling.',
+                effect: { gdp: -2, approval: -5 }
+            },
+            {
+                title: 'Tech Startup Interest',
+                text: 'Three tech startups are considering your city. If taxes are low and business-friendly, they might move here.',
+                conditional: true
+            },
+            {
+                title: 'Retail Chain Bankruptcy',
+                text: 'CRISIS! A major retailer just declared bankruptcy. 500 workers laid off immediately.',
+                effect: { unemployment: 2, approval: -10 }
+            },
+            {
+                title: 'National Inflation Surge',
+                text: 'Gas prices spike nationwide. Cost of living crisis affects all cities.',
+                effect: { inflation: 3, approval: -8 }
+            },
+            {
+                title: 'Federal Infrastructure Grant',
+                text: 'The federal government is offering infrastructure grants to cities with strong spending on roads and schools.',
+                conditional: true
+            },
+            {
+                title: 'Housing Market Decline',
+                text: 'Real estate values drop 15%. Consumer spending falls as people feel less wealthy.',
+                effect: { gdp: -2, approval: -5 }
+            },
+            null // Quarter 8: final evaluation
+        ];
+        
+        // CHART
+        let performanceChart;
+        
+        function initChart() {
+            const ctx = document.getElementById('performanceChart').getContext('2d');
+            performanceChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: 'Unemployment %',
+                            data: [],
+                            borderColor: '#dc3545',
+                            backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: 'Inflation %',
+                            data: [],
+                            borderColor: '#ffc107',
+                            backgroundColor: 'rgba(255, 193, 7, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: 'GDP Growth %',
+                            data: [],
+                            borderColor: '#28a745',
+                            backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: 'Approval Rating %',
+                            data: [],
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '8-Quarter Economic Performance',
+                            font: { size: 16 }
+                        },
+                        legend: {
+                            position: 'bottom'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: { display: true, text: 'Economic Indicators (%)' },
+                            min: -5,
+                            max: 15
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: { display: true, text: 'Approval Rating (%)' },
+                            min: 0,
+                            max: 100,
+                            grid: { drawOnChartArea: false }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // POLICY SELECTION
+        function selectPolicy(category, option) {
+            // Update radio button
+            const radioId = category + '_' + option;
+            const radio = document.getElementById(radioId);
+            if (radio) {
+                radio.checked = true;
+            }
+            
+            // Update visual selection
+            const options = document.querySelectorAll(`input[name="${category}"]`);
+            options.forEach(opt => {
+                opt.closest('.policy-option').classList.remove('selected');
+            });
+            if (radio) {
+                radio.closest('.policy-option').classList.add('selected');
+            }
+        }
+        
+        // ECONOMIC MODEL
+        function calculateEconomicImpact(decisions) {
+            let unemploymentChange = 0;
+            let inflationChange = 0;
+            let gdpChange = 0;
+            let approvalChange = 0;
+            let budgetChange = 0;
+            
+            // Get current quarter's policies
+            const currentPolicies = generateQuarterPolicies(gameState.quarter);
+            
+            // Apply impacts from each decision
+            currentPolicies.forEach(policy => {
+                const selectedOptionId = decisions[policy.category];
+                const option = policy.options.find(opt => opt.id === selectedOptionId);
+                
+                if (option && option.impact) {
+                    if (option.impact.unemployment) unemploymentChange += option.impact.unemployment;
+                    if (option.impact.inflation) inflationChange += option.impact.inflation;
+                    if (option.impact.gdp) gdpChange += option.impact.gdp;
+                    if (option.impact.approval) approvalChange += option.impact.approval;
+                    if (option.impact.budget) budgetChange += option.impact.budget;
+                    
+                    // Handle one-time options
+                    if (option.oneTime && option.id !== 'save') {
+                        gameState.emergencyUsed = true;
+                    }
+                    
+                    // Store future impacts
+                    if (option.futureImpact) {
+                        gameState.pendingImpacts = gameState.pendingImpacts || [];
+                        gameState.pendingImpacts.push({
+                            quarter: gameState.quarter + (option.delay || 2),
+                            impact: option.futureImpact
+                        });
+                    }
+                    
+                    // Store protection
+                    if (option.protection) {
+                        gameState.hasDisasterProtection = true;
+                    }
+                }
+            });
+            
+            // Apply pending impacts from previous quarters
+            if (gameState.pendingImpacts) {
+                gameState.pendingImpacts = gameState.pendingImpacts.filter(pending => {
+                    if (pending.quarter === gameState.quarter) {
+                        if (pending.impact.unemployment) unemploymentChange += pending.impact.unemployment;
+                        if (pending.impact.gdp) gdpChange += pending.impact.gdp;
+                        if (pending.impact.approval) approvalChange += pending.impact.approval;
+                        return false; // Remove from pending
+                    }
+                    return true; // Keep for later
+                });
+            }
+            
+            // PHILLIPS CURVE: Low unemployment tends to increase inflation
+            if (gameState.unemployment < 6) {
+                inflationChange += 0.3;
+            }
+            
+            // GDP EFFECT ON UNEMPLOYMENT
+            if (gdpChange > 2) {
+                unemploymentChange -= 0.5;
+            } else if (gdpChange < -1) {
+                unemploymentChange += 0.4;
+            }
+            
+            // HIGH INFLATION HURTS APPROVAL
+            if (gameState.inflation > 5) {
+                approvalChange -= 5;
+            }
+            
+            // DEFICIT TOO BIG HURTS APPROVAL
+            if (gameState.budgetDeficit > 30) {
+                approvalChange -= 3;
+            }
+            
+            // Random variation
+            unemploymentChange += (Math.random() - 0.5) * 0.6;
+            inflationChange += (Math.random() - 0.5) * 0.4;
+            gdpChange += (Math.random() - 0.5) * 0.8;
+            
+            return {
+                unemploymentChange,
+                inflationChange,
+                gdpChange,
+                approvalChange,
+                budgetChange
+            };
+        }
+        
+        // APPLY EVENT
+        function applyEvent(quarter) {
+            const event = EVENTS[quarter - 1];
+            if (!event) return null;
+            
+            // Show event banner
+            const banner = document.getElementById('eventBanner');
+            const title = document.getElementById('eventTitle');
+            const text = document.getElementById('eventText');
+            
+            title.textContent = event.title;
+            text.textContent = event.text;
+            banner.classList.add('show');
+            
+            // Handle conditional events
+            if (event.conditional) {
+                if (quarter === 3) { // Tech startups
+                    const lastDecision = gameState.decisions[gameState.decisions.length - 1];
+                    if (lastDecision.tax === 'cut' || lastDecision.trade === 'incentive') {
+                        return {
+                            effect: { unemployment: -0.8, approval: 5 },
+                            news: 'Great news! The tech startups are moving to your city. 800 new jobs!'
+                        };
+                    }
+                } else if (quarter === 6) { // Federal grant
+                    const spendingDecisions = gameState.decisions.filter(d => 
+                        d.spending === 'increase5' || d.spending === 'increase10'
+                    );
+                    if (spendingDecisions.length >= 2) {
+                        return {
+                            effect: { budget: 10, approval: 8 },
+                            news: 'Federal grant approved! $10M bonus for your infrastructure investments.'
+                        };
+                    }
+                }
+            }
+            
+            return event;
+        }
+        
+        // SUBMIT QUARTER
+        document.getElementById('submitQuarter').addEventListener('click', function() {
+            // Collect decisions from all policy categories
+            const decisions = {};
+            const currentPolicies = generateQuarterPolicies(gameState.quarter);
+            
+            currentPolicies.forEach(policy => {
+                const selectedRadio = document.querySelector(`input[name="${policy.category}"]:checked`);
+                if (selectedRadio) {
+                    decisions[policy.category] = selectedRadio.value;
+                }
+            });
+            
+            // Store old values
+            const oldUnemployment = gameState.unemployment;
+            const oldInflation = gameState.inflation;
+            const oldGDP = gameState.gdp;
+            const oldApproval = gameState.approval;
+            
+            // Calculate impacts
+            const impact = calculateEconomicImpact(decisions);
+            
+            // Apply base impacts
+            gameState.unemployment = Math.max(3, Math.min(15, gameState.unemployment + impact.unemploymentChange));
+            gameState.inflation = Math.max(-1, Math.min(10, gameState.inflation + impact.inflationChange));
+            gameState.gdp = Math.max(-5, Math.min(8, gameState.gdp + impact.gdpChange));
+            gameState.approval = Math.max(0, Math.min(100, gameState.approval + impact.approvalChange));
+            gameState.budget += impact.budgetChange;
+            gameState.budgetDeficit -= impact.budgetChange;
+            
+            // Apply event
+            const eventResult = applyEvent(gameState.quarter);
+            let newsText = null;
+            
+            if (eventResult && eventResult.effect) {
+                // Check if disaster protection helps
+                if (eventResult.effect.approval && eventResult.effect.approval < 0 && gameState.hasDisasterProtection) {
+                    eventResult.effect.approval = Math.floor(eventResult.effect.approval * 0.5);
+                    newsText = (eventResult.news || '') + ' Your disaster fund helped cushion the blow!';
+                }
+                
+                if (eventResult.effect.unemployment) gameState.unemployment += eventResult.effect.unemployment;
+                if (eventResult.effect.inflation) gameState.inflation += eventResult.effect.inflation;
+                if (eventResult.effect.gdp) gameState.gdp += eventResult.effect.gdp;
+                if (eventResult.effect.approval) gameState.approval += eventResult.effect.approval;
+                if (eventResult.effect.budget) {
+                    gameState.budget += eventResult.effect.budget;
+                    gameState.budgetDeficit -= eventResult.effect.budget;
+                }
+                if (!newsText) newsText = eventResult.news;
+            }
+            
+            // Check for crisis
+            if (gameState.approval < 30) {
+                showGameOver();
+                return;
+            }
+            
+            // Record history
+            gameState.decisions.push(decisions);
+            gameState.history.push({
+                quarter: gameState.quarter,
+                unemployment: gameState.unemployment,
+                inflation: gameState.inflation,
+                gdp: gameState.gdp,
+                approval: gameState.approval,
+                budget: gameState.budget
+            });
+            
+            // Update dashboard
+            updateDashboard();
+            
+            // Update chart
+            performanceChart.data.labels.push('Q' + gameState.quarter);
+            performanceChart.data.datasets[0].data.push(gameState.unemployment.toFixed(1));
+            performanceChart.data.datasets[1].data.push(gameState.inflation.toFixed(1));
+            performanceChart.data.datasets[2].data.push(gameState.gdp.toFixed(1));
+            performanceChart.data.datasets[3].data.push(gameState.approval.toFixed(0));
+            performanceChart.update();
+            
+            // Show feedback
+            showFeedback(oldUnemployment, oldInflation, oldGDP, oldApproval, newsText);
+            
+            // Check if game over
+            if (gameState.quarter >= gameState.maxQuarters) {
+                setTimeout(() => showResults(), 4000);
+            } else {
+                gameState.quarter++;
+                document.getElementById('quarterNumber').textContent = gameState.quarter;
+                document.getElementById('submitQuarterNumber').textContent = gameState.quarter;
+                
+                // Regenerate policies for next quarter
+                renderPolicies();
+            }
+        });
+        
+        // UPDATE DASHBOARD
+        function updateDashboard() {
+            document.getElementById('quarterDisplay').textContent = gameState.quarter + ' of 8';
+            document.getElementById('quarterCard').querySelector('.change').textContent = QUARTERS[gameState.quarter - 1];
+            
+            document.getElementById('approvalDisplay').textContent = Math.round(gameState.approval) + '%';
+            const approvalCard = document.getElementById('approvalCard');
+            if (gameState.approval >= 70) {
+                approvalCard.className = 'indicator good';
+            } else if (gameState.approval < 40) {
+                approvalCard.className = 'indicator bad';
+            } else {
+                approvalCard.className = 'indicator warning';
+            }
+            
+            document.getElementById('unemploymentDisplay').textContent = gameState.unemployment.toFixed(1) + '%';
+            const unemploymentCard = document.getElementById('unemploymentCard');
+            if (gameState.unemployment < 6) {
+                unemploymentCard.className = 'indicator good';
+            } else if (gameState.unemployment > 9) {
+                unemploymentCard.className = 'indicator bad';
+            } else {
+                unemploymentCard.className = 'indicator warning';
+            }
+            
+            document.getElementById('inflationDisplay').textContent = gameState.inflation.toFixed(1) + '%';
+            const inflationCard = document.getElementById('inflationCard');
+            if (gameState.inflation >= 1 && gameState.inflation <= 3) {
+                inflationCard.className = 'indicator good';
+            } else if (gameState.inflation > 5 || gameState.inflation < 0) {
+                inflationCard.className = 'indicator bad';
+            } else {
+                inflationCard.className = 'indicator warning';
+            }
+            
+            document.getElementById('gdpDisplay').textContent = gameState.gdp.toFixed(1) + '%';
+            const gdpCard = document.getElementById('gdpCard');
+            if (gameState.gdp > 2) {
+                gdpCard.className = 'indicator good';
+            } else if (gameState.gdp < 0) {
+                gdpCard.className = 'indicator bad';
+            } else {
+                gdpCard.className = 'indicator warning';
+            }
+            
+            document.getElementById('budgetDisplay').textContent = '$' + gameState.budget + 'M';
+            const budgetCard = document.getElementById('budgetCard');
+            if (gameState.budgetDeficit > 35) {
+                budgetCard.className = 'indicator bad';
+            } else if (gameState.budgetDeficit > 20) {
+                budgetCard.className = 'indicator warning';
+            } else {
+                budgetCard.className = 'indicator good';
+            }
+        }
+        
+        // SHOW FEEDBACK
+        function showFeedback(oldU, oldI, oldG, oldA, newsText) {
+            const feedback = document.getElementById('feedback');
+            const title = document.getElementById('feedbackTitle');
+            
+            title.textContent = `Quarter ${gameState.quarter} Results`;
+            
+            // Update result displays
+            document.getElementById('resultUnemployment').textContent = gameState.unemployment.toFixed(1) + '%';
+            document.getElementById('resultUnemploymentChange').textContent = 
+                formatChange(gameState.unemployment - oldU) + '%';
+            document.getElementById('resultUnemploymentChange').style.color = 
+                gameState.unemployment < oldU ? '#28a745' : '#dc3545';
+            
+            document.getElementById('resultInflation').textContent = gameState.inflation.toFixed(1) + '%';
+            document.getElementById('resultInflationChange').textContent = 
+                formatChange(gameState.inflation - oldI) + '%';
+            document.getElementById('resultInflationChange').style.color = 
+                Math.abs(gameState.inflation - 2) < Math.abs(oldI - 2) ? '#28a745' : '#dc3545';
+            
+            document.getElementById('resultGDP').textContent = gameState.gdp.toFixed(1) + '%';
+            document.getElementById('resultGDPChange').textContent = 
+                formatChange(gameState.gdp - oldG) + '%';
+            document.getElementById('resultGDPChange').style.color = 
+                gameState.gdp > oldG ? '#28a745' : '#dc3545';
+            
+            document.getElementById('resultApproval').textContent = Math.round(gameState.approval) + '%';
+            document.getElementById('resultApprovalChange').textContent = 
+                formatChange(gameState.approval - oldA) + '%';
+            document.getElementById('resultApprovalChange').style.color = 
+                gameState.approval > oldA ? '#28a745' : '#dc3545';
+            
+            // Generate analysis
+            let analysis = '';
+            
+            if (gameState.unemployment < oldU && gameState.gdp > oldG) {
+                analysis = "Strong economic performance! Jobs are being created and the economy is growing. ";
+            } else if (gameState.unemployment > oldU) {
+                analysis = "Job losses are a concern. Consider policies that boost employment. ";
+            }
+            
+            if (gameState.inflation > 4) {
+                analysis += "Warning: Inflation is rising fast. The Fed may raise interest rates to cool things down. ";
+            } else if (gameState.inflation < 0) {
+                analysis += "Deflation alert! Falling prices sound good but can hurt the economy long-term. ";
+            }
+            
+            if (gameState.approval < 40) {
+                analysis += "Public support is falling. You need results fast or risk being replaced. ";
+            } else if (gameState.approval > 65) {
+                analysis += "Great job approval! People are happy with your leadership. ";
+            }
+            
+            if (gameState.budgetDeficit > 30) {
+                analysis += "Budget deficit is growing. This could become a problem if it continues. ";
+            }
+            
+            document.getElementById('analysisText').textContent = analysis;
+            
+            // Show news if any
+            if (newsText) {
+                document.getElementById('newsBox').style.display = 'block';
+                document.getElementById('newsText').textContent = newsText;
+            } else {
+                document.getElementById('newsBox').style.display = 'none';
+            }
+            
+            feedback.classList.add('show');
+            
+            // Scroll to feedback
+            setTimeout(() => {
+                feedback.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 100);
+        }
+        
+        function formatChange(value) {
+            return (value >= 0 ? '+' : '') + value.toFixed(1);
+        }
+        
+        // GAME OVER (FIRED)
+        function showGameOver() {
+            document.getElementById('gameScreen').classList.add('hidden');
+            document.getElementById('resultsScreen').classList.add('show');
+            
+            document.getElementById('finalTitle').textContent = '❌ You Were Fired!';
+            document.getElementById('finalTitle').style.color = '#dc3545';
+            
+            document.getElementById('claimCode').textContent = 'NO CLAIM CODE';
+            document.getElementById('claimCode').style.background = '#6c757d';
+            
+            document.getElementById('finalAnalysis').textContent = 
+                `Your approval rating dropped below 30% in Quarter ${gameState.quarter}. ` +
+                `The mayor had no choice but to let you go. ` +
+                `Try again and focus on keeping people happy while fixing the economy!`;
+            
+            updateFinalStats();
+        }
+        
+        // SHOW RESULTS
+        function showResults() {
+            document.getElementById('gameScreen').classList.add('hidden');
+            document.getElementById('resultsScreen').classList.add('show');
+            
+            // Calculate final score
+            const targetsHit = [
+                gameState.unemployment < 6,
+                gameState.inflation >= 1 && gameState.inflation <= 3,
+                gameState.gdp > 2
+            ].filter(Boolean).length;
+            
+            let tier, xp, title;
+            
+            if (gameState.approval >= 70 && targetsHit === 3 && gameState.budgetDeficit < 20) {
+                tier = 'GOLD';
+                xp = 200;
+                title = '🏆 Economic Genius!';
+            } else if (gameState.approval >= 60 && targetsHit >= 2 && gameState.budgetDeficit < 35) {
+                tier = 'SILVER';
+                xp = 150;
+                title = '⭐ Competent Advisor!';
+            } else if (gameState.approval >= 50 && targetsHit >= 1) {
+                tier = 'BRONZE';
+                xp = 100;
+                title = '✅ Survived the Term!';
+            } else {
+                tier = 'BRONZE';
+                xp = 100;
+                title = '📊 Term Complete';
+            }
+            
+            document.getElementById('finalTitle').textContent = title;
+            
+            const claimCode = getAvailableCode(tier);
+            document.getElementById('claimCode').textContent = claimCode;
+            gameState.claimCode = claimCode;
+            
+            document.getElementById('masteryLevel').textContent = tier;
+            document.getElementById('xpEarned').textContent = xp + ' XP';
+            
+            updateFinalStats();
+            
+            // Generate final analysis
+            let analysis = '';
+            
+            if (tier === 'GOLD') {
+                analysis = 'Outstanding leadership! You balanced all three economic goals while maintaining strong public support. ' +
+                          'You understand the complex trade-offs in economic policy and made strategic decisions that worked.';
+            } else if (tier === 'SILVER') {
+                analysis = 'Good performance overall. You achieved most of your goals and kept the public satisfied. ' +
+                          'With more careful balancing of competing priorities, you could reach the top tier.';
+            } else {
+                analysis = 'You completed your term, but struggled to hit key economic targets. ' +
+                          'Review how your policy decisions affected unemployment, inflation, and growth. ' +
+                          'Remember: every choice has trade-offs!';
+            }
+            
+            const spending = gameState.decisions.filter(d => d.spending.includes('increase')).length;
+            if (spending >= 6) {
+                analysis += ' You relied heavily on government spending. This created jobs but may have caused inflation.';
+            } else if (spending <= 2) {
+                analysis += ' You were cautious with spending. This protected the budget but limited economic stimulus.';
+            }
+            
+            if (gameState.emergencyUsed) {
+                analysis += ' Your emergency fund usage was strategic.';
+            } else {
+                analysis += ' You saved your emergency fund—was that the right choice, or did you miss an opportunity?';
+            }
+            
+            document.getElementById('finalAnalysis').textContent = analysis;
+        }
+        
+        function updateFinalStats() {
+            document.getElementById('finalApproval').textContent = Math.round(gameState.approval) + '%';
+            document.getElementById('finalUnemployment').textContent = gameState.unemployment.toFixed(1) + '%';
+            document.getElementById('finalInflation').textContent = gameState.inflation.toFixed(1) + '%';
+            document.getElementById('finalGDP').textContent = gameState.gdp.toFixed(1) + '%';
+            document.getElementById('finalBudget').textContent = '$' + gameState.budget + 'M';
+            
+            const targetsHit = [
+                gameState.unemployment < 6,
+                gameState.inflation >= 1 && gameState.inflation <= 3,
+                gameState.gdp > 2
+            ].filter(Boolean).length;
+            
+            document.getElementById('targetsHit').textContent = targetsHit + ' of 3';
+            document.getElementById('emergencyUsed').textContent = gameState.emergencyUsed ? 'Yes' : 'No';
+        }
+        
+        // COPY CODE
+        function copyCode() {
+            const code = document.getElementById('claimCode').textContent;
+            if (code === 'LOADING...' || code === 'NO CLAIM CODE') return;
+            
+            navigator.clipboard.writeText(code).then(() => {
+                alert('✅ Code copied! Submit it in the BOW Finish Form to claim your XP.');
+            }).catch(() => {
+                prompt('Copy this code manually:', code);
+            });
+        }
+        
+        // DOWNLOAD PDF
+        function downloadResults() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            doc.setFontSize(18);
+            doc.text('BOW Mastery - Gauntlet Level 3', 20, 20);
+            doc.text('Economic Policy Simulator Results', 20, 30);
+            
+            doc.setFontSize(12);
+            doc.text(`Claim Code: ${gameState.claimCode}`, 20, 45);
+            doc.text(`Final Approval: ${Math.round(gameState.approval)}%`, 20, 55);
+            doc.text(`Final Unemployment: ${gameState.unemployment.toFixed(1)}%`, 20, 65);
+            doc.text(`Final Inflation: ${gameState.inflation.toFixed(1)}%`, 20, 75);
+            doc.text(`Final GDP Growth: ${gameState.gdp.toFixed(1)}%`, 20, 85);
+            doc.text(`Final Budget: $${gameState.budget}M`, 20, 95);
+            
+            doc.text('Quarter-by-Quarter Performance:', 20, 115);
+            gameState.history.forEach((q, i) => {
+                doc.setFontSize(10);
+                doc.text(
+                    `Q${q.quarter}: Approval ${Math.round(q.approval)}% | ` +
+                    `Unemployment ${q.unemployment.toFixed(1)}% | ` +
+                    `GDP ${q.gdp.toFixed(1)}%`,
+                    25, 125 + (i * 10)
+                );
+            });
+            
+            doc.save(`BOW_Gauntlet_L3_${gameState.claimCode}.pdf`);
+        }
+        
+        // INITIALIZE
+        initChart();
+        updateDashboard();
+        renderPolicies(); // Generate initial policy options
+    </script>
+</body>
+</html>
