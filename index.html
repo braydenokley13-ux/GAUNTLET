@@ -4,98 +4,147 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BOW Mastery Layer</title>
-
 <style>
-/* RESET */
 * { margin:0; padding:0; box-sizing:border-box; }
 
-/* BACKGROUND */
 body {
-  font-family: 'Segoe UI', system-ui, sans-serif;
-  background: linear-gradient(135deg,#667eea,#764ba2);
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   min-height:100vh;
   padding:40px 20px;
   color:white;
 }
 
-/* CONTAINER */
 .container {
-  max-width:1200px;
+  max-width:1400px;
   margin:auto;
 }
 
 header {
   text-align:center;
-  margin-bottom:50px;
+  margin-bottom:60px;
 }
 
 header h1 {
-  font-size:3em;
+  font-size:3.5em;
   font-weight:700;
-  margin-bottom:12px;
+  margin-bottom:15px;
+  text-shadow: 0 4px 15px rgba(0,0,0,0.3);
 }
 
 header p {
+  opacity:.95;
+  font-size:1.25em;
+  margin-bottom:10px;
+}
+
+header .subtitle {
+  font-size:1em;
+  opacity:.85;
+}
+
+/* SECTION HEADERS */
+.section-header {
+  margin: 50px 0 30px 0;
+  padding-bottom:15px;
+  border-bottom:3px solid rgba(255,255,255,0.3);
+}
+
+.section-header h2 {
+  font-size:2em;
+  font-weight:600;
+}
+
+.section-header p {
+  margin-top:8px;
   opacity:.9;
-  font-size:1.15em;
+  font-size:1.05em;
 }
 
 /* GRID */
 .simulations-grid {
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(330px,1fr));
+  grid-template-columns:repeat(auto-fit, minmax(340px, 1fr));
   gap:30px;
+  margin-bottom:40px;
 }
 
 /* CARD */
 .sim-card {
   background:white;
   border-radius:20px;
-  padding:28px;
+  padding:30px;
   color:#333;
-  box-shadow:0px 12px 30px rgba(0,0,0,.25);
+  box-shadow:0px 12px 30px rgba(0,0,0,.3);
   display:flex;
   flex-direction:column;
-  transition:.25s;
+  transition:.3s;
+  position:relative;
+  overflow:hidden;
+}
+
+.sim-card::before {
+  content:'';
+  position:absolute;
+  top:0;
+  left:0;
+  right:0;
+  height:5px;
+  background:linear-gradient(135deg, #667eea, #764ba2);
 }
 
 .sim-card:hover {
-  transform:translateY(-6px);
-  box-shadow:0px 18px 40px rgba(0,0,0,.35);
+  transform:translateY(-8px);
+  box-shadow:0px 20px 45px rgba(0,0,0,.4);
 }
 
 .badge {
-  padding:6px 14px;
+  padding:8px 16px;
   display:inline-block;
-  background:linear-gradient(135deg,#667eea,#764ba2);
+  background:linear-gradient(135deg, #667eea, #764ba2);
   color:white;
-  border-radius:18px;
+  border-radius:20px;
   font-size:.85em;
   font-weight:700;
-  margin-bottom:12px;
+  margin-bottom:15px;
+  width:fit-content;
+}
+
+.badge.gauntlet {
+  background:linear-gradient(135deg, #f093fb, #f5576c);
+}
+
+.badge.boss {
+  background:linear-gradient(135deg, #ffd700, #ff6b6b);
+}
+
+.badge.see {
+  background:linear-gradient(135deg, #4facfe, #00f2fe);
 }
 
 .sim-card h2 {
-  font-size:1.55em;
+  font-size:1.65em;
   color:#4a4eb7;
   font-weight:700;
-  margin-bottom:10px;
+  margin-bottom:12px;
+  line-height:1.2;
 }
 
 .sim-card p {
-  font-size:.95em;
+  font-size:1em;
   color:#666;
-  margin-bottom:18px;
-  line-height:1.5;
+  margin-bottom:20px;
+  line-height:1.6;
+  flex:1;
 }
 
 /* STATS */
 .stats {
   display:flex;
   justify-content:space-between;
-  padding-top:12px;
-  border-top:1px solid #e4e4e4;
-  margin-bottom:18px;
+  padding-top:15px;
+  border-top:2px solid #f0f0f0;
+  margin-bottom:20px;
 }
 
 .stat {
@@ -104,84 +153,222 @@ header p {
 }
 
 .stat-value {
-  font-size:1.25em;
+  font-size:1.3em;
   font-weight:700;
   color:#667eea;
+  display:block;
 }
 
 .stat-label {
-  font-size:.75em;
-  color:#777;
+  font-size:.8em;
+  color:#999;
+  text-transform:uppercase;
+  letter-spacing:.5px;
 }
 
-/* BUTTON */
+/* BUTTONS */
 .play-button {
   text-align:center;
-  padding:14px;
-  border-radius:40px;
+  padding:16px;
+  border-radius:50px;
   font-weight:700;
-  background:linear-gradient(135deg,#667eea,#764ba2);
+  background:linear-gradient(135deg, #667eea, #764ba2);
   color:white;
   text-decoration:none;
-  font-size:1em;
+  font-size:1.05em;
+  transition:.3s;
+  box-shadow:0 4px 15px rgba(102, 126, 234, 0.3);
 }
 
-/* LOCKED */
+.play-button:hover {
+  transform:scale(1.02);
+  box-shadow:0 6px 20px rgba(102, 126, 234, 0.5);
+}
+
+/* LOCKED STATE */
 .coming-soon {
-  opacity:.55;
+  opacity:.65;
   pointer-events:none;
+}
+
+.coming-soon .play-button {
+  background:linear-gradient(135deg, #95a5a6, #7f8c8d);
+  cursor:not-allowed;
+}
+
+/* SPECIAL HIGHLIGHT */
+.special-card {
+  grid-column: span 1;
+  border:3px solid #ffd700;
+  background: linear-gradient(145deg, #fff9e6, white);
+}
+
+.special-card::before {
+  height:8px;
+  background:linear-gradient(135deg, #ffd700, #ff6b6b);
+}
+
+/* INFO BOX */
+.info-box {
+  background:rgba(255,255,255,0.15);
+  border-radius:15px;
+  padding:25px;
+  margin-top:40px;
+  text-align:center;
+}
+
+.info-box h3 {
+  font-size:1.5em;
+  margin-bottom:10px;
+}
+
+.info-box p {
+  opacity:.95;
+  line-height:1.6;
 }
 </style>
 </head>
-
 <body>
 <div class="container">
+  <header>
+    <h1>🎯 BOW Mastery Layer</h1>
+    <p>Advanced Economics Through Interactive Simulations</p>
+    <p class="subtitle">Build your economic thinking from micro to macro to systems</p>
+  </header>
 
-<header>
-  <h1>🎯 BOW Mastery Layer</h1>
-  <p>Advanced Economics Through Interactive Simulations</p>
-</header>
-
-<div class="simulations-grid">
-
-  <div class="sim-card">
-    <span class="badge">GAUNTLET</span>
-    <h2>Level 1: Market Master</h2>
-    <p>Learn supply and demand through running a competitive lemonade stand.</p>
-    <div class="stats">
-      <div class="stat"><span class="stat-value">15</span><span class="stat-label">min</span></div>
-      <div class="stat"><span class="stat-value">50–100</span><span class="stat-label">XP</span></div>
-      <div class="stat"><span class="stat-value">Basic</span><span class="stat-label">diff</span></div>
-    </div>
-    <a href="./gauntlet-l1/" class="play-button">▶ Play Now</a>
+  <!-- GAUNTLET TRACK -->
+  <div class="section-header">
+    <h2>🏆 The Gauntlet - Solo Skill Building</h2>
+    <p>Master economic fundamentals through progressive challenges</p>
   </div>
 
-  <div class="sim-card">
-    <span class="badge">GAUNTLET</span>
-    <h2>Level 2: Supply Shock</h2>
-    <p>React to volatility & survive supply disruptions.</p>
-    <div class="stats">
-      <div class="stat"><span class="stat-value">20</span><span class="stat-label">min</span></div>
-      <div class="stat"><span class="stat-value">75–150</span><span class="stat-label">XP</span></div>
-      <div class="stat"><span class="stat-value">Medium</span><span class="stat-label">diff</span></div>
+  <div class="simulations-grid">
+    <div class="sim-card">
+      <span class="badge gauntlet">LEVEL 1</span>
+      <h2>Market Master</h2>
+      <p>Learn supply and demand through running a competitive lemonade stand. Adjust prices and production to maximize profit.</p>
+      <div class="stats">
+        <div class="stat">
+          <span class="stat-value">15</span>
+          <span class="stat-label">min</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value">50–100</span>
+          <span class="stat-label">XP</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value">4/10</span>
+          <span class="stat-label">diff</span>
+        </div>
+      </div>
+      <a href="./gauntlet-l1/" class="play-button">▶ Play Now</a>
     </div>
-    <a href="./GauntletL2/" class="play-button">▶ Play Now</a>
+
+    <div class="sim-card">
+      <span class="badge gauntlet">LEVEL 2</span>
+      <h2>Supply Chain Crisis</h2>
+      <p>Manage multiple products, cash flow, and supply chain disruptions. Balance inventory, storage, and market demand.</p>
+      <div class="stats">
+        <div class="stat">
+          <span class="stat-value">25</span>
+          <span class="stat-label">min</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value">60–150</span>
+          <span class="stat-label">XP</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value">6/10</span>
+          <span class="stat-label">diff</span>
+        </div>
+      </div>
+      <a href="./GauntletL2/" class="play-button">▶ Play Now</a>
+    </div>
+
+    <div class="sim-card">
+      <span class="badge gauntlet">LEVEL 3</span>
+      <h2>Economic Policy Simulator</h2>
+      <p>Become Chief Economic Advisor. Make fiscal, monetary, and trade policy decisions while managing a city in crisis.</p>
+      <div class="stats">
+        <div class="stat">
+          <span class="stat-value">35</span>
+          <span class="stat-label">min</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value">100–200</span>
+          <span class="stat-label">XP</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value">8/10</span>
+          <span class="stat-label">diff</span>
+        </div>
+      </div>
+      <a href="./gauntlet-l3/" class="play-button">▶ Play Now</a>
+    </div>
   </div>
 
-  <div class="sim-card coming-soon">
-    <span class="badge">GAUNTLET</span>
-    <h2>Level 3: Market Wars</h2>
-    <p>Battle adaptive AI in competition.</p>
-    <div class="stats">
-      <div class="stat"><span class="stat-value">25</span><span class="stat-label">min</span></div>
-      <div class="stat"><span class="stat-value">100–200</span><span class="stat-label">XP</span></div>
-      <div class="stat"><span class="stat-value">Hard</span><span class="stat-label">diff</span></div>
-    </div>
-    <a class="play-button">🔒 Coming Soon</a>
+  <!-- BOSS SIM -->
+  <div class="section-header">
+    <h2>👥 Boss Sim - Multiplayer Challenge</h2>
+    <p>Team up with a partner and negotiate with AI opponents</p>
   </div>
 
-</div>
+  <div class="simulations-grid">
+    <div class="sim-card special-card">
+      <span class="badge boss">BOSS</span>
+      <h2>Economic Summit</h2>
+      <p><strong>2 Students vs 3 AI Cities.</strong> Negotiate a regional recovery plan through 6 rounds of coalition-building, budget allocation, and crisis management. Your decisions determine if the region survives or collapses.</p>
+      <div class="stats">
+        <div class="stat">
+          <span class="stat-value">50</span>
+          <span class="stat-label">min</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value">125–250</span>
+          <span class="stat-label">XP</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value">9/10</span>
+          <span class="stat-label">diff</span>
+        </div>
+      </div>
+      <a href="./Boss Sim/" class="play-button">▶ Play Now</a>
+    </div>
+  </div>
 
+  <!-- SEE (COMING SOON) -->
+  <div class="section-header">
+    <h2>🏀 Sports Economic Engine - Systems Simulation</h2>
+    <p>Manage a professional sports franchise through multiple seasons</p>
+  </div>
+
+  <div class="simulations-grid">
+    <div class="sim-card coming-soon">
+      <span class="badge see">SEE</span>
+      <h2>NBA Team Manager</h2>
+      <p>Run an NBA franchise for 5 seasons. Draft players, manage salary cap, set ticket prices, negotiate revenue sharing, and compete against 7 other teams in a full economic simulation.</p>
+      <div class="stats">
+        <div class="stat">
+          <span class="stat-value">90+</span>
+          <span class="stat-label">min</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value">200–400</span>
+          <span class="stat-label">XP</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value">10/10</span>
+          <span class="stat-label">diff</span>
+        </div>
+      </div>
+      <a class="play-button">🔒 Coming Soon</a>
+    </div>
+  </div>
+
+  <div class="info-box">
+    <h3>📈 Your Progress Path</h3>
+    <p>Start with Gauntlet L1 to learn basics → Progress through L2 & L3 → Take on the Boss Sim with a partner → Master the SEE capstone</p>
+  </div>
 </div>
 </body>
 </html>
