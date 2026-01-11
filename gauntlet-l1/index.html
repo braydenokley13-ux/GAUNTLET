@@ -617,3 +617,115 @@
     </script>
 </body>
 </html>
+// ADD THIS TO YOUR SIMULATION CODE
+
+// Configuration - UPDATE WITH YOUR WEB APP URL
+const CONFIG = {
+  webAppUrl: 'YOUR_WEB_APP_URL_HERE', // Get this after deploying
+  simulationType: 'GAUNTLET',         // Or MASTERY_MENU, BOSS_SIM
+  level: 1                            // For Gauntlet levels
+};
+
+// MODIFY YOUR showResults() FUNCTION:
+async function showResults() {
+  document.getElementById('gameScreen').classList.add('hidden');
+  document.getElementById('resultsScreen').classList.add('show');
+  
+  // Calculate final stats (your existing code)
+  const avgPrice = gameState.history.reduce((sum, r) => sum + r.price, 0) / gameState.maxRounds;
+  
+  // Determine mastery level (your existing code)
+  let mastery, xp;
+  if (gameState.totalProfit >= 150) {
+    mastery = "GOLD";
+    xp = 100;
+  } else if (gameState.totalProfit >= 100) {
+    mastery = "SILVER";
+    xp = 75;
+  } else if (gameState.totalProfit >= 50) {
+    mastery = "BRONZE";
+    xp = 50;
+  } else {
+    mastery = "NOVICE";
+    xp = 25;
+  }
+  
+  // **NEW: Prompt for email**
+  const email = prompt('Enter your email to save your results:');
+  
+  if (!email || !email.includes('@')) {
+    alert('⚠️ Invalid email. Your results will not be saved.');
+    const code = generateLocalCode(mastery, xp);
+    displayResults(code, mastery, xp, false);
+    return;
+  }
+  
+  // **NEW: Submit to your Apps Script**
+  try {
+    const response = await fetch(CONFIG.webAppUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: email,
+        simulationType: CONFIG.simulationType,
+        level: CONFIG.level,
+        score: gameState.totalProfit,
+        tier: mastery === 'NOVICE' ? 'BRONZE' : mastery,
+        xp: xp,
+        timestamp: new Date().toISOString(),
+        gameData: {
+          totalProfit: gameState.totalProfit,
+          totalSold: gameState.totalSold,
+          rounds: gameState.history
+        }
+      })
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      displayResults(result.claimCode, result.tier, result.xp, true);
+      alert('✅ Results saved! Your claim code has been generated.');
+    } else {
+      alert(`⚠️ ${result.message || 'Could not save results. Please try again.'}`);
+      const code = generateLocalCode(mastery, xp);
+      displayResults(code, mastery, xp, false);
+    }
+    
+  } catch (error) {
+    console.error('Submission error:', error);
+    alert('⚠️ Network error. Your results will not be saved.');
+    const code = generateLocalCode(mastery, xp);
+    displayResults(code, mastery, xp, false);
+  }
+}
+
+// Helper: Generate local code if submission fails
+function generateLocalCode(mastery, xp) {
+  const random = Math.random().toString(36).substring(2, 8).toUpperCase();
+  return `LOCAL-${mastery}-${random}`;
+}
+
+// Helper: Display results
+function displayResults(code, mastery, xp, isSaved) {
+  document.getElementById('finalProfit').textContent = `$${gameState.totalProfit.toFixed(2)}`;
+  document.getElementById('finalSold').textContent = gameState.totalSold;
+  document.getElementById('avgPrice').textContent = `$${avgPrice.toFixed(2)}`;
+  document.getElementById('masteryLevel').textContent = mastery;
+  document.getElementById('xpEarned').textContent = `${xp} XP`;
+  document.getElementById('claimCode').textContent = code;
+  
+  gameState.claimCode = code;
+  gameState.mastery = mastery;
+  gameState.xp = xp;
+  
+  if (isSaved) {
+    // Show success message
+    const successMsg = document.createElement('div');
+    successMsg.style.cssText = 'background:#dcfce7;border:2px solid #22c55e;padding:15px;border-radius:8px;margin:20px 0;';
+    successMsg.innerHTML = '✅ <strong>Saved to BOW System!</strong> No need to manually submit this code.';
+    document.querySelector('.performance-summary').after(successMsg);
+  }
+}
