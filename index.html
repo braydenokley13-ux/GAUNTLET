@@ -1,130 +1,11 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BOW Mastery Layer</title>
 
-<div class="simulations-grid">
-
-    <!-- Level 1 -->
-    <div class="sim-card">
-        <span class="badge">GAUNTLET</span>
-        <h2>Level 1: Market Master</h2>
-        <p>Learn supply and demand through running a competitive lemonade stand. Set prices, manage inventory, and maximize profit over 5 rounds.</p>
-        
-        <div class="stats">
-            <div class="stat">
-                <span class="stat-value">⏱️ 15</span>
-                <span class="stat-label">minutes</span>
-            </div>
-            <div class="stat">
-                <span class="stat-value">🎯 50–100</span>
-                <span class="stat-label">XP</span>
-            </div>
-            <div class="stat">
-                <span class="stat-value">📊 Basic</span>
-                <span class="stat-label">difficulty</span>
-            </div>
-        </div>
-        
-        <a href="./gauntlet-l1/" class="play-button">▶️ Play Now</a>
-    </div>
-
-    <!-- Level 2 (Playable & Premium) -->
-    <div class="sim-card">
-        <span class="badge" style="background:linear-gradient(135deg,#764ba2,#9a63d6);">GAUNTLET</span>
-        <h2>Level 2: Supply Shock</h2>
-        <p>Market volatility simulator. React to random supply shocks, weather disruptions, and demand spikes. Optimize pricing and survive.</p>
-        
-        <div class="stats">
-            <div class="stat">
-                <span class="stat-value">⏱️ 20</span>
-                <span class="stat-label">minutes</span>
-            </div>
-            <div class="stat">
-                <span class="stat-value">🎯 75–150</span>
-                <span class="stat-label">XP</span>
-            </div>
-            <div class="stat">
-                <span class="stat-value">📊 Medium</span>
-                <span class="stat-label">difficulty</span>
-            </div>
-        </div>
-        
-        <a href="./GauntletL2/" class="play-button">▶️ Play Now</a>
-    </div>
-
-    <!-- Level 3 (Locked) -->
-    <div class="sim-card coming-soon">
-        <span class="badge">GAUNTLET</span>
-        <h2>Level 3: Market Wars</h2>
-        <p>Compete against reactive AI competitors as they adjust to your price moves. Find the equilibrium path to dominance.</p>
-        
-        <div class="stats">
-            <div class="stat">
-                <span class="stat-value">⏱️ 25</span>
-                <span class="stat-label">minutes</span>
-            </div>
-            <div class="stat">
-                <span class="stat-value">🎯 100–200</span>
-                <span class="stat-label">XP</span>
-            </div>
-            <div class="stat">
-                <span class="stat-value">📊 Hard</span>
-                <span class="stat-label">difficulty</span>
-            </div>
-        </div>
-        
-        <a href="#" class="play-button">🔒 Coming Soon</a>
-    </div>
-
-    <!-- Boss Sim (Locked) -->
-    <div class="sim-card coming-soon">
-        <span class="badge" style="background:linear-gradient(135deg,#3b82f6,#6366f1);">BOSS SIM</span>
-        <h2>Economic Summit</h2>
-        <p>Macro simulation. Competing macro actors must stabilize inflation, unemployment, and growth through policy levers.</p>
-        
-        <div class="stats">
-            <div class="stat">
-                <span class="stat-value">⏱️ 60</span>
-                <span class="stat-label">minutes</span>
-            </div>
-            <div class="stat">
-                <span class="stat-value">🎯 200+</span>
-                <span class="stat-label">XP</span>
-            </div>
-            <div class="stat">
-                <span class="stat-value">👥 4–16</span>
-                <span class="stat-label">players</span>
-            </div>
-        </div>
-        
-        <a href="#" class="play-button">🔒 Coming Soon</a>
-    </div>
-
-    <!-- SEE (Locked) -->
-    <div class="sim-card coming-soon">
-        <span class="badge" style="background:linear-gradient(135deg,#ff6b6b,#ff8585);">SEE</span>
-        <h2>Sports Economy Sim</h2>
-        <p>Persistent multi-week basketball league economy. Draft, trade, ticket pricing, CBA policy, and playoff revenue sharing.</p>
-        
-        <div class="stats">
-            <div class="stat">
-                <span class="stat-value">⏱️ 8</span>
-                <span class="stat-label">weeks</span>
-            </div>
-            <div class="stat">
-                <span class="stat-value">🎯 500+</span>
-                <span class="stat-label">XP</span>
-            </div>
-            <div class="stat">
-                <span class="stat-value">👥 8–20</span>
-                <span class="stat-label">GMs</span>
-            </div>
-        </div>
-        
-        <a href="#" class="play-button">🔒 Coming Soon</a>
-    </div>
-
-</div>
+<style>
 /* RESET */
 * {
     margin: 0;
@@ -132,6 +13,7 @@
     box-sizing: border-box;
 }
 
+/* BACKGROUND + TEXT */
 body {
     font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -170,7 +52,7 @@ header p {
     gap: 30px;
 }
 
-/* SIM CARD */
+/* CARD */
 .sim-card {
     background: white;
     border-radius: 22px;
@@ -178,10 +60,8 @@ header p {
     color: #333;
     box-shadow: 0 14px 40px rgba(0,0,0,0.20);
     transition: transform 0.3s, box-shadow 0.3s;
-    cursor: default;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
 }
 
 .sim-card:hover {
@@ -244,7 +124,7 @@ header p {
     color: #888;
 }
 
-/* PLAY BUTTON (UNLOCKED) */
+/* PLAY BUTTON */
 .play-button {
     display: block;
     width: 100%;
@@ -256,7 +136,7 @@ header p {
     text-decoration: none;
     color: white;
     background: linear-gradient(135deg, #667eea, #764ba2);
-    transition: transform 0.2s, opacity 0.2s;
+    transition: transform 0.2s;
     margin-top: auto;
 }
 
@@ -264,7 +144,7 @@ header p {
     transform: scale(1.05);
 }
 
-/* LOCKED STATE */
+/* LOCKED */
 .coming-soon {
     opacity: 0.6;
     pointer-events: none;
@@ -274,5 +154,77 @@ header p {
     background: #d4d4d4 !important;
     color: #555 !important;
     box-shadow: none !important;
-    transform: none !important;
 }
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<header>
+    <h1>🎯 BOW Mastery Layer</h1>
+    <p>Advanced Economics Through Interactive Simulations</p>
+</header>
+
+<div class="simulations-grid">
+
+    <!-- Level 1 -->
+    <div class="sim-card">
+        <span class="badge">GAUNTLET</span>
+        <h2>Level 1: Market Master</h2>
+        <p>Learn supply and demand through running a competitive lemonade stand.</p>
+        <div class="stats">
+            <div class="stat"><span class="stat-value">15</span><span class="stat-label">minutes</span></div>
+            <div class="stat"><span class="stat-value">50–100</span><span class="stat-label">XP</span></div>
+            <div class="stat"><span class="stat-value">Basic</span><span class="stat-label">difficulty</span></div>
+        </div>
+        <a href="./gauntlet-l1/" class="play-button">▶ Play Now</a>
+    </div>
+
+    <!-- Level 2 -->
+    <div class="sim-card">
+        <span class="badge" style="background:linear-gradient(135deg,#764ba2,#9a63d6);">GAUNTLET</span>
+        <h2>Level 2: Supply Shock</h2>
+        <p>React to shocks and volatility. Adapt pricing to survive.</p>
+        <div class="stats">
+            <div class="stat"><span class="stat-value">20</span><span class="stat-label">minutes</span></div>
+            <div class="stat"><span class="stat-value">75–150</span><span class="stat-label">XP</span></div>
+            <div class="stat"><span class="stat-value">Medium</span><span class="stat-label">difficulty</span></div>
+        </div>
+        <a href="./GauntletL2/" class="play-button">▶ Play Now</a>
+    </div>
+
+    <!-- Level 3 -->
+    <div class="sim-card coming-soon">
+        <span class="badge">GAUNTLET</span>
+        <h2>Level 3: Market Wars</h2>
+        <p>Compete against adaptive AI as they react to your price moves.</p>
+        <div class="stats">
+            <div class="stat"><span class="stat-value">25</span><span class="stat-label">minutes</span></div>
+            <div class="stat"><span class="stat-value">100–200</span><span class="stat-label">XP</span></div>
+            <div class="stat"><span class="stat-value">Hard</span><span class="stat-label">difficulty</span></div>
+        </div>
+        <a class="play-button locked">🔒 Coming Soon</a>
+    </div>
+
+    <!-- Boss Sim -->
+    <div class="sim-card coming-soon">
+        <span class="badge" style="background:linear-gradient(135deg,#3b82f6,#6366f1);">BOSS SIM</span>
+        <h2>Economic Summit</h2>
+        <p>Macro multiplayer simulation.</p>
+        <a class="play-button locked">🔒 Coming Soon</a>
+    </div>
+
+    <!-- SEE -->
+    <div class="sim-card coming-soon">
+        <span class="badge" style="background:linear-gradient(135deg,#ff6b6b,#ff8585);">SEE</span>
+        <h2>Sports Economy Sim</h2>
+        <p>Persistent basketball league economy.</p>
+        <a class="play-button locked">🔒 Coming Soon</a>
+    </div>
+
+</div>
+
+</div>
+</body>
+</html>
