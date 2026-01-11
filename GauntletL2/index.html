@@ -1,0 +1,1343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOW Mastery - Gauntlet L2: Supply Chain Crisis</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 1200px;
+            width: 100%;
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .game-area {
+            padding: 40px;
+        }
+        
+        .scenario {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 8px;
+        }
+        
+        .scenario h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+        
+        .event-banner {
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: none;
+            animation: slideDown 0.5s;
+            font-weight: 600;
+        }
+        
+        .event-banner.show {
+            display: block;
+        }
+        
+        .event-banner.negative {
+            background: #f8d7da;
+            border: 2px solid #dc3545;
+            color: #721c24;
+        }
+        
+        .event-banner.positive {
+            background: #d4edda;
+            border: 2px solid #28a745;
+            color: #155724;
+        }
+        
+        .event-banner.neutral {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            color: #856404;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-card h3 {
+            font-size: 0.85em;
+            opacity: 0.9;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .stat-card .value {
+            font-size: 2em;
+            font-weight: bold;
+        }
+        
+        .stat-card.warning {
+            background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+        }
+        
+        .stat-card.danger {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        }
+        
+        .stat-card.success {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+        
+        .product-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .product-card {
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 12px;
+            padding: 25px;
+        }
+        
+        .product-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .product-icon {
+            font-size: 3em;
+        }
+        
+        .product-info h3 {
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+        
+        .product-info .product-stats {
+            font-size: 0.9em;
+            color: #666;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .input-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .input-group input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            font-size: 1.1em;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            transition: border-color 0.3s;
+        }
+        
+        .input-group input[type="number"]:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+        
+        .input-group input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: #ddd;
+            outline: none;
+        }
+        
+        .input-group input[type="range"]::-webkit-slider-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+        }
+        
+        .value-display {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        
+        .info-text {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .warning-text {
+            color: #dc3545;
+            font-weight: 600;
+        }
+        
+        .success-text {
+            color: #28a745;
+            font-weight: 600;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1em;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            margin-top: 20px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .feedback {
+            background: #d4edda;
+            border: 2px solid #28a745;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            display: none;
+        }
+        
+        .feedback.show {
+            display: block;
+            animation: slideIn 0.5s;
+        }
+        
+        .feedback.negative {
+            background: #f8d7da;
+            border-color: #dc3545;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .chart-container {
+            margin: 30px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+        }
+        
+        .results-screen {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .results-screen.show {
+            display: block;
+        }
+        
+        .results-screen h2 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+        
+        .claim-code {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            font-size: 1.8em;
+            font-weight: bold;
+            letter-spacing: 3px;
+            margin: 30px 0;
+            cursor: pointer;
+            transition: transform 0.3s;
+            word-break: break-all;
+        }
+        
+        .claim-code:hover {
+            transform: scale(1.05);
+        }
+        
+        .performance-summary {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 30px;
+            margin: 30px 0;
+            text-align: left;
+        }
+        
+        .performance-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 0;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .performance-row:last-child {
+            border-bottom: none;
+        }
+        
+        .download-btn {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+        
+        .success-banner {
+            background: #dcfce7;
+            border: 2px solid #22c55e;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .inventory-display {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+        
+        .inventory-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .inventory-item:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏪 SUPPLY CHAIN CRISIS</h1>
+            <p>BOW Mastery Layer - Gauntlet Level 2</p>
+        </div>
+        
+        <!-- GAME SCREEN -->
+        <div class="game-area" id="gameScreen">
+            <div class="scenario">
+                <h2>📦 Your Mission</h2>
+                <p>You're managing a sporting goods store with <strong>3 products</strong>, each with different economics. Navigate <strong>6 rounds</strong> of supply chain disruptions, seasonal demand shifts, and cash flow challenges.</p>
+                <p style="margin-top: 10px;">
+                    <strong>Starting capital:</strong> $500<br>
+                    <strong>Storage limit:</strong> 100 slots<br>
+                    <strong>Target profit:</strong> $400+ for Gold tier
+                </p>
+            </div>
+            
+            <div class="event-banner" id="eventBanner">
+                <strong>📰 Round <span id="eventRound"></span>:</strong> <span id="eventText"></span>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-card" id="roundCard">
+                    <h3>Round</h3>
+                    <div class="value" id="roundDisplay">1</div>
+                </div>
+                <div class="stat-card" id="cashCard">
+                    <h3>Cash Balance</h3>
+                    <div class="value" id="cashDisplay">$500</div>
+                </div>
+                <div class="stat-card" id="profitCard">
+                    <h3>Total Profit</h3>
+                    <div class="value" id="profitDisplay">$0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Storage Used</h3>
+                    <div class="value" id="storageDisplay">0/100</div>
+                </div>
+            </div>
+            
+            <div class="inventory-display">
+                <h3 style="color: #667eea; margin-bottom: 10px;">📊 Current Inventory</h3>
+                <div class="inventory-item">
+                    <span>🏀 Basketballs:</span>
+                    <span id="invBasketballs">0 units (0 slots)</span>
+                </div>
+                <div class="inventory-item">
+                    <span>👕 Jerseys:</span>
+                    <span id="invJerseys">0 units (0 slots)</span>
+                </div>
+                <div class="inventory-item">
+                    <span>💧 Water Bottles:</span>
+                    <span id="invBottles">0 units (0 slots)</span>
+                </div>
+            </div>
+            
+            <h3 style="color: #667eea; margin: 30px 0 20px 0;">🛒 Order & Price Your Products</h3>
+            
+            <div class="product-controls">
+                <!-- Basketballs -->
+                <div class="product-card">
+                    <div class="product-header">
+                        <div class="product-icon">🏀</div>
+                        <div class="product-info">
+                            <h3>Basketballs</h3>
+                            <div class="product-stats">
+                                Cost: $15 | Suggested: $25<br>
+                                Storage: 2 slots each<br>
+                                <span id="basketballSupply">Supply: 100% reliable</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="orderBasketballs">
+                            Order Quantity: <span class="value-display" id="orderBasketballsValue">0</span>
+                        </label>
+                        <input type="number" id="orderBasketballs" min="0" max="100" value="0">
+                        <div class="info-text">
+                            Cost: $<span id="costBasketballs">0</span> | 
+                            Slots: <span id="slotsBasketballs">0</span>
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="priceBasketballs">
+                            Price per Unit: <span class="value-display" id="priceBasketballsValue">$25</span>
+                        </label>
+                        <input type="range" id="priceBasketballs" min="15" max="40" step="1" value="25">
+                    </div>
+                </div>
+                
+                <!-- Jerseys -->
+                <div class="product-card">
+                    <div class="product-header">
+                        <div class="product-icon">👕</div>
+                        <div class="product-info">
+                            <h3>Jerseys</h3>
+                            <div class="product-stats">
+                                Cost: $8 | Suggested: $20<br>
+                                Storage: 1 slot each<br>
+                                Supply: 100% reliable
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="orderJerseys">
+                            Order Quantity: <span class="value-display" id="orderJerseysValue">0</span>
+                        </label>
+                        <input type="number" id="orderJerseys" min="0" max="100" value="0">
+                        <div class="info-text">
+                            Cost: $<span id="costJerseys">0</span> | 
+                            Slots: <span id="slotsJerseys">0</span>
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="priceJerseys">
+                            Price per Unit: <span class="value-display" id="priceJerseysValue">$20</span>
+                        </label>
+                        <input type="range" id="priceJerseys" min="10" max="35" step="1" value="20">
+                    </div>
+                </div>
+                
+                <!-- Water Bottles -->
+                <div class="product-card">
+                    <div class="product-header">
+                        <div class="product-icon">💧</div>
+                        <div class="product-info">
+                            <h3>Water Bottles</h3>
+                            <div class="product-stats">
+                                Cost: $2 | Suggested: $5<br>
+                                Storage: 0.5 slots each<br>
+                                Supply: 100% reliable
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="orderBottles">
+                            Order Quantity: <span class="value-display" id="orderBottlesValue">0</span>
+                        </label>
+                        <input type="number" id="orderBottles" min="0" max="200" value="0">
+                        <div class="info-text">
+                            Cost: $<span id="costBottles">0</span> | 
+                            Slots: <span id="slotsBottles">0</span>
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="priceBottles">
+                            Price per Unit: <span class="value-display" id="priceBottlesValue">$5</span>
+                        </label>
+                        <input type="range" id="priceBottles" min="3" max="10" step="0.5" value="5">
+                    </div>
+                </div>
+            </div>
+            
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                <h3 style="color: #667eea; margin-bottom: 15px;">📋 Order Summary</h3>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                    <span><strong>Total Order Cost:</strong></span>
+                    <span id="totalCost" style="font-size: 1.3em; font-weight: bold;">$0</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                    <span><strong>Total Storage Needed:</strong></span>
+                    <span id="totalStorage" style="font-size: 1.3em; font-weight: bold;">0 slots</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span><strong>Cash After Purchase:</strong></span>
+                    <span id="cashAfter" style="font-size: 1.3em; font-weight: bold;">$500</span>
+                </div>
+            </div>
+            
+            <button class="btn" id="submitRound">Submit Round Decisions</button>
+            
+            <div class="feedback" id="feedback">
+                <h3 id="feedbackTitle">Round Results</h3>
+                <div id="feedbackText"></div>
+            </div>
+            
+            <div class="chart-container">
+                <canvas id="performanceChart"></canvas>
+            </div>
+        </div>
+        
+        <!-- RESULTS SCREEN -->
+        <div class="results-screen" id="resultsScreen">
+            <h2>🎉 Simulation Complete!</h2>
+            
+            <div class="claim-code" id="claimCode" onclick="copyCode()">
+                LOADING...
+            </div>
+            <p style="color: #666; margin-top: -20px;">Click to copy your claim code</p>
+            
+            <div class="performance-summary">
+                <h3 style="color: #667eea; margin-bottom: 20px;">📈 Final Results</h3>
+                <div class="performance-row">
+                    <span><strong>Final Cash Balance:</strong></span>
+                    <span id="finalCash">$0</span>
+                </div>
+                <div class="performance-row">
+                    <span><strong>Total Profit:</strong></span>
+                    <span id="finalProfit">$0</span>
+                </div>
+                <div class="performance-row">
+                    <span><strong>Total Revenue:</strong></span>
+                    <span id="finalRevenue">$0</span>
+                </div>
+                <div class="performance-row">
+                    <span><strong>Products Sold:</strong></span>
+                    <span id="finalSold">0</span>
+                </div>
+                <div class="performance-row">
+                    <span><strong>Waste Percentage:</strong></span>
+                    <span id="finalWaste">0%</span>
+                </div>
+                <div class="performance-row">
+                    <span><strong>Storage Efficiency:</strong></span>
+                    <span id="finalStorage">0%</span>
+                </div>
+                <div class="performance-row">
+                    <span><strong>Cash Crisis Occurred:</strong></span>
+                    <span id="finalCashCrisis">No</span>
+                </div>
+                <div class="performance-row">
+                    <span><strong>Mastery Tier:</strong></span>
+                    <span id="masteryLevel">Bronze</span>
+                </div>
+                <div class="performance-row">
+                    <span><strong>XP Earned:</strong></span>
+                    <span id="xpEarned">60 XP</span>
+                </div>
+            </div>
+            
+            <div id="saveStatus"></div>
+            
+            <button class="btn download-btn" onclick="downloadResults()">
+                📥 Download Results (PDF)
+            </button>
+            
+            <button class="btn" onclick="location.reload()">
+                🔄 Play Again
+            </button>
+            
+            <p style="margin-top: 30px; color: #666;">
+                Your claim code has been saved to the BOW system.<br>
+                <strong>Submit it in the BOW Finish Form to claim your XP!</strong>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // CONFIGURATION
+        const CONFIG = {
+            webAppUrl: 'https://script.google.com/macros/s/AKfycbyZ8QJTy4Wdr_ds211hB8GEEz6CRbhsqp2EGiQDW7CK6X6tGHd0EO-eLLIQF15RavrK/exec',
+            simulationType: 'GAUNTLET',
+            level: 2
+        };
+        
+        // PRODUCT DEFINITIONS
+        const PRODUCTS = {
+            basketballs: {
+                name: 'Basketballs',
+                icon: '🏀',
+                cost: 15,
+                storagePerUnit: 2,
+                supplyReliability: 0.7, // Can change per round
+                baseDemand: 30,
+                priceElasticity: -1.5
+            },
+            jerseys: {
+                name: 'Jerseys',
+                icon: '👕',
+                cost: 8,
+                storagePerUnit: 1,
+                supplyReliability: 1.0,
+                baseDemand: 40,
+                priceElasticity: -2.0,
+                seasonal: true
+            },
+            bottles: {
+                name: 'Water Bottles',
+                icon: '💧',
+                cost: 2,
+                storagePerUnit: 0.5,
+                supplyReliability: 1.0,
+                baseDemand: 80,
+                priceElasticity: -3.0
+            }
+        };
+        
+        // GAME STATE
+        const gameState = {
+            round: 1,
+            maxRounds: 6,
+            cash: 500,
+            startingCash: 500,
+            totalProfit: 0,
+            totalRevenue: 0,
+            totalCosts: 0,
+            cashCrisisOccurred: false,
+            storageLimit: 100,
+            inventory: {
+                basketballs: 0,
+                jerseys: 0,
+                bottles: 0
+            },
+            pendingDelivery: {
+                basketballs: 0
+            },
+            history: [],
+            events: [],
+            competitorPrices: {
+                basketballs: 25,
+                jerseys: 20,
+                bottles: 5
+            },
+            startTime: new Date()
+        };
+        
+        // MARKET EVENTS
+        const MARKET_EVENTS = [
+            {
+                round: 1,
+                type: 'positive',
+                text: 'Grand Opening: Local sports league recommends your store. Water bottle demand +30%.',
+                effect: { demandMultiplier: { bottles: 1.3 } }
+            },
+            {
+                round: 2,
+                type: 'negative',
+                text: 'Supply Chain Alert: Basketball supplier experiencing delays. Orders arrive next round.',
+                effect: { basketballDelay: true }
+            },
+            {
+                round: 3,
+                type: 'negative',
+                text: 'New Competitor: MegaSports opens nearby selling jerseys for $15. Customer loyalty tested.',
+                effect: { competitorPrice: { jerseys: 15 } }
+            },
+            {
+                round: 4,
+                type: 'negative',
+                text: 'Material Shortage: Basketball supplier can only fulfill 50% of orders this round.',
+                effect: { supplyReliability: { basketballs: 0.5 } }
+            },
+            {
+                round: 5,
+                type: 'positive',
+                text: 'Holiday Boom: All demand increases by 50%, but inventory must be ordered now!',
+                effect: { demandMultiplier: { all: 1.5 } }
+            },
+            {
+                round: 6,
+                type: 'negative',
+                text: 'Off-Season Slump: Post-holiday crash. All demand decreases by 40%.',
+                effect: { demandMultiplier: { all: 0.6 } }
+            }
+        ];
+        
+        // SEASONAL MULTIPLIERS
+        const SEASONAL = {
+            1: { jerseys: 1.0, bottles: 1.3 },  // Summer
+            2: { jerseys: 1.4, bottles: 1.2 },  // Back to school
+            3: { jerseys: 1.3, bottles: 0.9 },  // Fall
+            4: { jerseys: 1.1, bottles: 0.8 },  // Late fall
+            5: { jerseys: 1.2, bottles: 1.0 },  // Holiday
+            6: { jerseys: 0.7, bottles: 0.8 }   // Off-season
+        };
+        
+        // CHART
+        let performanceChart;
+        
+        function initChart() {
+            const ctx = document.getElementById('performanceChart').getContext('2d');
+            performanceChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: 'Cash Balance',
+                            data: [],
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: 'Round Profit',
+                            data: [],
+                            borderColor: '#f5576c',
+                            backgroundColor: 'rgba(245, 87, 108, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Financial Performance',
+                            font: { size: 16 }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'Amount ($)' }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // UPDATE CALCULATIONS
+        function updateCalculations() {
+            const orderBasketballs = parseInt(document.getElementById('orderBasketballs').value) || 0;
+            const orderJerseys = parseInt(document.getElementById('orderJerseys').value) || 0;
+            const orderBottles = parseInt(document.getElementById('orderBottles').value) || 0;
+            
+            const priceBasketballs = parseFloat(document.getElementById('priceBasketballs').value);
+            const priceJerseys = parseFloat(document.getElementById('priceJerseys').value);
+            const priceBottles = parseFloat(document.getElementById('priceBottles').value);
+            
+            // Costs
+            const costBasketballs = orderBasketballs * PRODUCTS.basketballs.cost;
+            const costJerseys = orderJerseys * PRODUCTS.jerseys.cost;
+            const costBottles = orderBottles * PRODUCTS.bottles.cost;
+            const totalCost = costBasketballs + costJerseys + costBottles;
+            
+            // Storage
+            const slotsBasketballs = orderBasketballs * PRODUCTS.basketballs.storagePerUnit;
+            const slotsJerseys = orderJerseys * PRODUCTS.jerseys.storagePerUnit;
+            const slotsBottles = orderBottles * PRODUCTS.bottles.storagePerUnit;
+            const totalSlots = slotsBasketballs + slotsJerseys + slotsBottles;
+            
+            const currentStorage = calculateCurrentStorage();
+            const totalStorage = currentStorage + totalSlots;
+            
+            // Update displays
+            document.getElementById('costBasketballs').textContent = costBasketballs.toFixed(0);
+            document.getElementById('slotsBasketballs').textContent = slotsBasketballs.toFixed(1);
+            
+            document.getElementById('costJerseys').textContent = costJerseys.toFixed(0);
+            document.getElementById('slotsJerseys').textContent = slotsJerseys.toFixed(1);
+            
+            document.getElementById('costBottles').textContent = costBottles.toFixed(0);
+            document.getElementById('slotsBottles').textContent = slotsBottles.toFixed(1);
+            
+            document.getElementById('totalCost').textContent = '$' + totalCost.toFixed(0);
+            document.getElementById('totalStorage').textContent = totalStorage.toFixed(1) + ' slots';
+            
+            const cashAfter = gameState.cash - totalCost;
+            document.getElementById('cashAfter').textContent = '$' + cashAfter.toFixed(0);
+            
+            // Color coding
+            document.getElementById('cashAfter').style.color = cashAfter < 0 ? '#dc3545' : '#28a745';
+            document.getElementById('totalStorage').style.color = totalStorage > gameState.storageLimit ? '#dc3545' : '#28a745';
+            
+            // Update value displays
+            document.getElementById('orderBasketballsValue').textContent = orderBasketballs;
+            document.getElementById('orderJerseysValue').textContent = orderJerseys;
+            document.getElementById('orderBottlesValue').textContent = orderBottles;
+            
+            document.getElementById('priceBasketballsValue').textContent = '$' + priceBasketballs;
+            document.getElementById('priceJerseysValue').textContent = '$' + priceJerseys;
+            document.getElementById('priceBottlesValue').textContent = '$' + priceBottles;
+        }
+        
+        // Calculate current storage used
+        function calculateCurrentStorage() {
+            return (gameState.inventory.basketballs * PRODUCTS.basketballs.storagePerUnit) +
+                   (gameState.inventory.jerseys * PRODUCTS.jerseys.storagePerUnit) +
+                   (gameState.inventory.bottles * PRODUCTS.bottles.storagePerUnit);
+        }
+        
+        // Update inventory display
+        function updateInventoryDisplay() {
+            const basketballSlots = gameState.inventory.basketballs * PRODUCTS.basketballs.storagePerUnit;
+            const jerseySlots = gameState.inventory.jerseys * PRODUCTS.jerseys.storagePerUnit;
+            const bottleSlots = gameState.inventory.bottles * PRODUCTS.bottles.storagePerUnit;
+            
+            document.getElementById('invBasketballs').textContent = 
+                `${gameState.inventory.basketballs} units (${basketballSlots} slots)`;
+            document.getElementById('invJerseys').textContent = 
+                `${gameState.inventory.jerseys} units (${jerseySlots} slots)`;
+            document.getElementById('invBottles').textContent = 
+                `${gameState.inventory.bottles} units (${bottleSlots} slots)`;
+            
+            const totalStorage = calculateCurrentStorage();
+            document.getElementById('storageDisplay').textContent = 
+                `${totalStorage.toFixed(1)}/${gameState.storageLimit}`;
+        }
+        
+        // Add event listeners
+        ['orderBasketballs', 'orderJerseys', 'orderBottles', 
+         'priceBasketballs', 'priceJerseys', 'priceBottles'].forEach(id => {
+            document.getElementById(id).addEventListener('input', updateCalculations);
+        });
+        
+        // APPLY MARKET EVENT
+        function applyMarketEvent(round) {
+            const event = MARKET_EVENTS.find(e => e.round === round);
+            if (!event) return;
+            
+            const banner = document.getElementById('eventBanner');
+            const roundSpan = document.getElementById('eventRound');
+            const text = document.getElementById('eventText');
+            
+            roundSpan.textContent = round;
+            text.textContent = event.text;
+            banner.className = 'event-banner show ' + event.type;
+            
+            // Apply effects
+            if (event.effect.competitorPrice) {
+                Object.assign(gameState.competitorPrices, event.effect.competitorPrice);
+            }
+            
+            if (event.effect.supplyReliability) {
+                Object.assign(PRODUCTS.basketballs, { 
+                    supplyReliability: event.effect.supplyReliability.basketballs 
+                });
+                document.getElementById('basketballSupply').textContent = 
+                    `Supply: ${(event.effect.supplyReliability.basketballs * 100).toFixed(0)}% reliable`;
+            }
+            
+            gameState.events.push({ round, event: event.text });
+        }
+        
+        // CALCULATE DEMAND
+        function calculateDemand(product, price, round) {
+            const productData = PRODUCTS[product];
+            let baseDemand = productData.baseDemand;
+            
+            // Apply seasonal multiplier
+            if (SEASONAL[round] && SEASONAL[round][product]) {
+                baseDemand *= SEASONAL[round][product];
+            }
+            
+            // Price effect
+            const optimalPrice = productData.cost * 2;
+            const priceEffect = productData.priceElasticity * (price - optimalPrice);
+            
+            // Competitor effect
+            const competitorEffect = (gameState.competitorPrices[product] - price) * 5;
+            
+            // Event multipliers
+            const event = MARKET_EVENTS.find(e => e.round === round);
+            let eventMultiplier = 1.0;
+            
+            if (event && event.effect.demandMultiplier) {
+                if (event.effect.demandMultiplier[product]) {
+                    eventMultiplier = event.effect.demandMultiplier[product];
+                } else if (event.effect.demandMultiplier.all) {
+                    eventMultiplier = event.effect.demandMultiplier.all;
+                }
+            }
+            
+            // Random variation
+            const randomVariation = (Math.random() - 0.5) * 10;
+            
+            const totalDemand = (baseDemand + priceEffect + competitorEffect + randomVariation) * eventMultiplier;
+            
+            return Math.max(0, Math.floor(totalDemand));
+        }
+        
+        // SUBMIT ROUND
+        document.getElementById('submitRound').addEventListener('click', function() {
+            const orderBasketballs = parseInt(document.getElementById('orderBasketballs').value) || 0;
+            const orderJerseys = parseInt(document.getElementById('orderJerseys').value) || 0;
+            const orderBottles = parseInt(document.getElementById('orderBottles').value) || 0;
+            
+            const priceBasketballs = parseFloat(document.getElementById('priceBasketballs').value);
+            const priceJerseys = parseFloat(document.getElementById('priceJerseys').value);
+            const priceBottles = parseFloat(document.getElementById('priceBottles').value);
+            
+            // Validate
+            const totalCost = (orderBasketballs * PRODUCTS.basketballs.cost) +
+                            (orderJerseys * PRODUCTS.jerseys.cost) +
+                            (orderBottles * PRODUCTS.bottles.cost);
+            
+            if (totalCost > gameState.cash) {
+                alert('❌ Insufficient funds! You need $' + totalCost.toFixed(2) + ' but only have $' + gameState.cash.toFixed(2));
+                return;
+            }
+            
+            const totalStorage = calculateCurrentStorage() + 
+                               (orderBasketballs * PRODUCTS.basketballs.storagePerUnit) +
+                               (orderJerseys * PRODUCTS.jerseys.storagePerUnit) +
+                               (orderBottles * PRODUCTS.bottles.storagePerUnit);
+            
+            if (totalStorage > gameState.storageLimit) {
+                alert('❌ Storage limit exceeded! You need ' + totalStorage.toFixed(1) + ' slots but only have ' + gameState.storageLimit);
+                return;
+            }
+            
+            // Process delivery from previous round
+            if (gameState.pendingDelivery.basketballs > 0) {
+                gameState.inventory.basketballs += gameState.pendingDelivery.basketballs;
+                gameState.pendingDelivery.basketballs = 0;
+            }
+            
+            // Process orders
+            gameState.cash -= totalCost;
+            if (gameState.cash < 0) {
+                gameState.cashCrisisOccurred = true;
+            }
+            
+            // Check for basketball delay
+            const event = MARKET_EVENTS.find(e => e.round === gameState.round);
+            if (event && event.effect.basketballDelay) {
+                gameState.pendingDelivery.basketballs = Math.floor(orderBasketballs * PRODUCTS.basketballs.supplyReliability);
+            } else {
+                gameState.inventory.basketballs += Math.floor(orderBasketballs * PRODUCTS.basketballs.supplyReliability);
+            }
+            
+            gameState.inventory.jerseys += orderJerseys;
+            gameState.inventory.bottles += orderBottles;
+            
+            // Calculate sales
+            const demandBasketballs = calculateDemand('basketballs', priceBasketballs, gameState.round);
+            const demandJerseys = calculateDemand('jerseys', priceJerseys, gameState.round);
+            const demandBottles = calculateDemand('bottles', priceBottles, gameState.round);
+            
+            const soldBasketballs = Math.min(demandBasketballs, gameState.inventory.basketballs);
+            const soldJerseys = Math.min(demandJerseys, gameState.inventory.jerseys);
+            const soldBottles = Math.min(demandBottles, gameState.inventory.bottles);
+            
+            gameState.inventory.basketballs -= soldBasketballs;
+            gameState.inventory.jerseys -= soldJerseys;
+            gameState.inventory.bottles -= soldBottles;
+            
+            const revenue = (soldBasketballs * priceBasketballs) +
+                          (soldJerseys * priceJerseys) +
+                          (soldBottles * priceBottles);
+            
+            gameState.cash += revenue;
+            const roundProfit = revenue - totalCost;
+            gameState.totalProfit += roundProfit;
+            gameState.totalRevenue += revenue;
+            gameState.totalCosts += totalCost;
+            
+            // Record history
+            gameState.history.push({
+                round: gameState.round,
+                orders: { basketballs: orderBasketballs, jerseys: orderJerseys, bottles: orderBottles },
+                prices: { basketballs: priceBasketballs, jerseys: priceJerseys, bottles: priceBottles },
+                sales: { basketballs: soldBasketballs, jerseys: soldJerseys, bottles: soldBottles },
+                revenue: revenue,
+                costs: totalCost,
+                profit: roundProfit,
+                cash: gameState.cash
+            });
+            
+            // Update displays
+            document.getElementById('cashDisplay').textContent = '$' + Math.floor(gameState.cash);
+            document.getElementById('profitDisplay').textContent = '$' + Math.floor(gameState.totalProfit);
+            document.getElementById('roundDisplay').textContent = gameState.round;
+            
+            // Color code cash
+            const cashCard = document.getElementById('cashCard');
+            if (gameState.cash < 0) {
+                cashCard.className = 'stat-card danger';
+            } else if (gameState.cash < 100) {
+                cashCard.className = 'stat-card warning';
+            } else {
+                cashCard.className = 'stat-card success';
+            }
+            
+            // Color code profit
+            const profitCard = document.getElementById('profitCard');
+            if (gameState.totalProfit < 0) {
+                profitCard.className = 'stat-card danger';
+            } else if (gameState.totalProfit < 250) {
+                profitCard.className = 'stat-card warning';
+            } else {
+                profitCard.className = 'stat-card success';
+            }
+            
+            updateInventoryDisplay();
+            
+            // Update chart
+            performanceChart.data.labels.push(`R${gameState.round}`);
+            performanceChart.data.datasets[0].data.push(gameState.cash.toFixed(0));
+            performanceChart.data.datasets[1].data.push(roundProfit.toFixed(0));
+            performanceChart.update();
+            
+            // Show feedback
+            showFeedback(soldBasketballs, soldJerseys, soldBottles, roundProfit);
+            
+            // Check if game over - we just completed this round
+            if (gameState.round >= gameState.maxRounds) {
+                setTimeout(() => showResults(), 3000);
+            } else {
+                gameState.round++;
+                document.getElementById('roundDisplay').textContent = gameState.round;
+                applyMarketEvent(gameState.round);
+                
+                // Reset order inputs
+                document.getElementById('orderBasketballs').value = 0;
+                document.getElementById('orderJerseys').value = 0;
+                document.getElementById('orderBottles').value = 0;
+                updateCalculations();
+            }
+        });
+        
+        // FEEDBACK
+        function showFeedback(soldB, soldJ, soldBottles, profit) {
+            const feedback = document.getElementById('feedback');
+            const title = document.getElementById('feedbackTitle');
+            const text = document.getElementById('feedbackText');
+            
+            title.textContent = `Round ${gameState.round} Results`;
+            
+            let message = `<strong>📊 Sales Summary:</strong><br>`;
+            message += `🏀 Basketballs: ${soldB} sold<br>`;
+            message += `👕 Jerseys: ${soldJ} sold<br>`;
+            message += `💧 Water Bottles: ${soldBottles} sold<br><br>`;
+            message += `<strong>Profit this round: $${profit.toFixed(2)}</strong><br>`;
+            message += `<strong>Cash balance: $${gameState.cash.toFixed(2)}</strong><br><br>`;
+            
+            if (profit > 100) {
+                message += "🔥 <strong>Excellent round!</strong> Strong profit margins.<br>";
+            } else if (profit < 0) {
+                message += "⚠️ <strong>Loss this round.</strong> Review your pricing and ordering strategy.<br>";
+            }
+            
+            if (gameState.cash < 100) {
+                message += "💰 <strong>Low cash warning!</strong> Manage working capital carefully.<br>";
+            }
+            
+            const totalInventory = gameState.inventory.basketballs + gameState.inventory.jerseys + gameState.inventory.bottles;
+            if (totalInventory > 50) {
+                message += "📦 <strong>High inventory levels.</strong> Consider reducing orders or lowering prices.<br>";
+            }
+            
+            text.innerHTML = message;
+            feedback.className = profit >= 0 ? 'feedback show' : 'feedback show negative';
+        }
+        
+        // RESULTS
+        async function showResults() {
+            document.getElementById('gameScreen').classList.add('hidden');
+            document.getElementById('resultsScreen').classList.add('show');
+            
+            // Calculate metrics
+            const totalSold = gameState.history.reduce((sum, r) => 
+                sum + r.sales.basketballs + r.sales.jerseys + r.sales.bottles, 0);
+            
+            const totalOrdered = gameState.history.reduce((sum, r) => 
+                sum + r.orders.basketballs + r.orders.jerseys + r.orders.bottles, 0);
+            
+            const wastePercentage = totalOrdered > 0 ? 
+                ((totalOrdered - totalSold) / totalOrdered * 100) : 0;
+            
+            const avgStorage = gameState.history.reduce((sum, r, i) => {
+                // Estimate storage used each round
+                return sum + calculateCurrentStorage();
+            }, 0) / gameState.maxRounds;
+            
+            const storageEfficiency = (avgStorage / gameState.storageLimit * 100);
+            
+            // Determine tier
+            let tier, xp;
+            
+            const profitScore = gameState.totalProfit >= 400;
+            const cashScore = !gameState.cashCrisisOccurred;
+            const wasteScore = wastePercentage < 20;
+            const storageScore = storageEfficiency >= 50;
+            
+            if (profitScore && cashScore && wasteScore && storageScore) {
+                tier = "GOLD";
+                xp = 150;
+            } else if (gameState.totalProfit >= 250 && (cashScore || wasteScore)) {
+                tier = "SILVER";
+                xp = 100;
+            } else {
+                tier = "BRONZE";
+                xp = 60;
+            }
+            
+            // Update displays
+            document.getElementById('finalCash').textContent = '$' + gameState.cash.toFixed(2);
+            document.getElementById('finalProfit').textContent = '$' + gameState.totalProfit.toFixed(2);
+            document.getElementById('finalRevenue').textContent = '$' + gameState.totalRevenue.toFixed(2);
+            document.getElementById('finalSold').textContent = totalSold;
+            document.getElementById('finalWaste').textContent = wastePercentage.toFixed(1) + '%';
+            document.getElementById('finalStorage').textContent = storageEfficiency.toFixed(1) + '%';
+            document.getElementById('finalCashCrisis').textContent = gameState.cashCrisisOccurred ? 'Yes' : 'No';
+            document.getElementById('masteryLevel').textContent = tier;
+            document.getElementById('xpEarned').textContent = xp + ' XP';
+            
+            // Prompt for email
+            const email = prompt('Enter your email to save your results:');
+            
+            if (!email || !email.includes('@')) {
+                alert('⚠️ Invalid email. Your results will not be saved.');
+                const localCode = generateLocalCode(tier);
+                document.getElementById('claimCode').textContent = localCode;
+                gameState.claimCode = localCode;
+                return;
+            }
+            
+            // Submit
+            await submitResults(email, tier, xp);
+        }
+        
+        // SUBMIT
+        async function submitResults(email, tier, xp) {
+            const saveStatus = document.getElementById('saveStatus');
+            saveStatus.innerHTML = '<p>⏳ Submitting to BOW system...</p>';
+            
+            try {
+                const response = await fetch(CONFIG.webAppUrl, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: email,
+                        simulationType: CONFIG.simulationType,
+                        level: CONFIG.level,
+                        score: Math.floor(gameState.totalProfit),
+                        tier: tier,
+                        xp: xp,
+                        timestamp: new Date().toISOString(),
+                        gameData: {
+                            finalCash: gameState.cash,
+                            totalProfit: gameState.totalProfit,
+                            totalRevenue: gameState.totalRevenue,
+                            totalCosts: gameState.totalCosts,
+                            cashCrisisOccurred: gameState.cashCrisisOccurred,
+                            rounds: gameState.history,
+                            events: gameState.events
+                        }
+                    })
+                });
+                
+                // Generate code locally
+                const emailParts = email.split('@')[0].split('.');
+                const initials = emailParts.length >= 2 
+                    ? (emailParts[0][0] + emailParts[1][0]).toUpperCase()
+                    : email.substring(0, 2).toUpperCase();
+                
+                const suffix = Math.random().toString(36).substring(2, 8).toUpperCase();
+                const claimCode = `GAUNTLET-L2-${tier}-${Math.floor(gameState.totalProfit)}-${initials}-${suffix}`;
+                
+                document.getElementById('claimCode').textContent = claimCode;
+                gameState.claimCode = claimCode;
+                
+                saveStatus.className = 'success-banner';
+                saveStatus.innerHTML = `
+                    <strong>✅ Submitted!</strong><br>
+                    Your code has been saved to the BOW system.<br>
+                    <strong>Now submit this code in the BOW Finish Form to claim your XP!</strong>
+                `;
+                
+            } catch (error) {
+                console.error('Submission error:', error);
+                const localCode = generateLocalCode(tier);
+                document.getElementById('claimCode').textContent = localCode;
+                gameState.claimCode = localCode;
+                
+                saveStatus.innerHTML = `
+                    <div style="background:#fff3cd;border:2px solid #ffc107;padding:15px;border-radius:8px;margin:20px 0;">
+                        <strong>⚠️ Submission Status Unknown</strong><br>
+                        Your code: <strong>${localCode}</strong><br>
+                        Submit this code in the BOW Finish Form to claim your XP!
+                    </div>
+                `;
+            }
+        }
+        
+        function generateLocalCode(tier) {
+            const random = Math.random().toString(36).substring(2, 8).toUpperCase();
+            return `GAUNTLET-L2-${tier}-${Math.floor(gameState.totalProfit)}-${random}`;
+        }
+        
+        function copyCode() {
+            const code = document.getElementById('claimCode').textContent;
+            if (code === 'LOADING...') return;
+            
+            navigator.clipboard.writeText(code).then(() => {
+                alert('✅ Code copied! Submit it in the BOW Finish Form.');
+            }).catch(() => {
+                prompt('Copy this code:', code);
+            });
+        }
+        
+        // DOWNLOAD PDF
+        function downloadResults() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            doc.setFontSize(18);
+            doc.text('BOW Mastery - Gauntlet Level 2', 20, 20);
+            doc.text('Supply Chain Crisis Results', 20, 30);
+            
+            doc.setFontSize(12);
+            doc.text(`Claim Code: ${gameState.claimCode}`, 20, 45);
+            doc.text(`Final Cash: $${gameState.cash.toFixed(2)}`, 20, 55);
+            doc.text(`Total Profit: $${gameState.totalProfit.toFixed(2)}`, 20, 65);
+            doc.text(`Total Revenue: $${gameState.totalRevenue.toFixed(2)}`, 20, 75);
+            doc.text(`Cash Crisis: ${gameState.cashCrisisOccurred ? 'Yes' : 'No'}`, 20, 85);
+            
+            doc.text('Round-by-Round Performance:', 20, 100);
+            gameState.history.forEach((r, i) => {
+                doc.setFontSize(10);
+                doc.text(
+                    `R${r.round}: Profit $${r.profit.toFixed(2)} | Cash $${r.cash.toFixed(2)}`,
+                    25, 110 + (i * 8)
+                );
+            });
+            
+            doc.save(`BOW_Gauntlet_L2_${gameState.claimCode}.pdf`);
+        }
+        
+        // INITIALIZE
+        initChart();
+        applyMarketEvent(1);
+        updateCalculations();
+        updateInventoryDisplay();
+    </script>
+</body>
+</html>
