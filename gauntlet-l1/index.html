@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BOW Mastery - Market Master</title>
+    <title>BOW Mastery - Gauntlet L1: Market Master</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
@@ -14,7 +14,7 @@
         }
         
         body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
@@ -27,7 +27,7 @@
             background: white;
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            max-width: 900px;
+            max-width: 1100px;
             width: 100%;
             overflow: hidden;
         }
@@ -66,10 +66,45 @@
             margin-bottom: 15px;
         }
         
+        .event-banner {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: none;
+            animation: slideDown 0.5s;
+        }
+        
+        .event-banner.show {
+            display: block;
+        }
+        
+        .event-banner.negative {
+            background: #f8d7da;
+            border-color: #dc3545;
+        }
+        
+        .event-banner.positive {
+            background: #d4edda;
+            border-color: #28a745;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
             margin-bottom: 30px;
         }
         
@@ -87,7 +122,7 @@
         }
         
         .stat-card h3 {
-            font-size: 0.9em;
+            font-size: 0.85em;
             opacity: 0.9;
             margin-bottom: 10px;
             text-transform: uppercase;
@@ -95,8 +130,16 @@
         }
         
         .stat-card .value {
-            font-size: 2.5em;
+            font-size: 2em;
             font-weight: bold;
+        }
+        
+        .stat-card.warning {
+            background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+        }
+        
+        .stat-card.danger {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
         }
         
         .controls {
@@ -113,7 +156,7 @@
         }
         
         .input-group {
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
         
         .input-group label {
@@ -139,6 +182,20 @@
             cursor: pointer;
         }
         
+        .input-group input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            font-size: 1.1em;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            transition: border-color 0.3s;
+        }
+        
+        .input-group input[type="number"]:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+        
         .value-display {
             display: inline-block;
             background: #667eea;
@@ -147,6 +204,12 @@
             border-radius: 20px;
             font-weight: bold;
             margin-left: 10px;
+        }
+        
+        .info-text {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
         }
         
         .btn {
@@ -263,11 +326,19 @@
         }
         
         .download-btn {
-            background: #28a745;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
         }
         
         .hidden {
             display: none;
+        }
+        
+        .success-banner {
+            background: #dcfce7;
+            border: 2px solid #22c55e;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
         }
     </style>
 </head>
@@ -282,8 +353,16 @@
         <div class="game-area" id="gameScreen">
             <div class="scenario">
                 <h2>📊 Your Mission</h2>
-                <p>You're running a lemonade stand in a competitive market. Your goal: <strong>maximize profit over 5 rounds</strong> by setting the right price. But watch out—your competitors are watching, and customers are price-sensitive!</p>
-                <p style="margin-top: 10px;"><strong>Cost per cup:</strong> $0.50 | <strong>Target Profit:</strong> $100+</p>
+                <p>You're running a lemonade stand in a volatile market. Your goal: <strong>maximize profit over 5 rounds</strong> while managing inventory, responding to market events, and competing with rivals.</p>
+                <p style="margin-top: 10px;">
+                    <strong>Fixed costs per round:</strong> $20 (rent, equipment)<br>
+                    <strong>Variable cost per cup:</strong> $0.50 (lemons, sugar, cups)<br>
+                    <strong>Target profit:</strong> $150+ for mastery
+                </p>
+            </div>
+            
+            <div class="event-banner" id="eventBanner">
+                <strong>📰 Market Event:</strong> <span id="eventText"></span>
             </div>
             
             <div class="stats-grid">
@@ -291,30 +370,47 @@
                     <h3>Round</h3>
                     <div class="value" id="roundDisplay">1</div>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card" id="profitCard">
                     <h3>Total Profit</h3>
                     <div class="value" id="profitDisplay">$0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Inventory</h3>
+                    <div class="value" id="inventoryDisplay">0</div>
                 </div>
                 <div class="stat-card">
                     <h3>Cups Sold</h3>
                     <div class="value" id="soldDisplay">0</div>
                 </div>
                 <div class="stat-card">
-                    <h3>Market Share</h3>
-                    <div class="value" id="shareDisplay">0%</div>
+                    <h3>Reputation</h3>
+                    <div class="value" id="reputationDisplay">50%</div>
                 </div>
             </div>
             
             <div class="controls">
-                <h3>💰 Set Your Price for Round <span id="controlRound">1</span></h3>
+                <h3>💼 Round <span id="controlRound">1</span> Decisions</h3>
+                
+                <div class="input-group">
+                    <label for="productionSlider">
+                        Production Quantity: <span class="value-display" id="productionValue">50 cups</span>
+                    </label>
+                    <input type="range" id="productionSlider" min="0" max="150" step="10" value="50">
+                    <div class="info-text">Cost: $<span id="productionCost">25.00</span> (variable only)</div>
+                </div>
+                
                 <div class="input-group">
                     <label for="priceSlider">
                         Price per Cup: <span class="value-display" id="priceValue">$2.00</span>
                     </label>
                     <input type="range" id="priceSlider" min="0.75" max="5.00" step="0.25" value="2.00">
+                    <div class="info-text">
+                        Predicted demand: <span id="predictedDemand">~60 cups</span> 
+                        | Predicted profit: $<span id="predictedProfit">42.50</span>
+                    </div>
                 </div>
                 
-                <button class="btn" id="submitRound">Submit Round Decision</button>
+                <button class="btn" id="submitRound">Submit Round Decisions</button>
             </div>
             
             <div class="feedback" id="feedback">
@@ -323,7 +419,7 @@
             </div>
             
             <div class="chart-container">
-                <canvas id="demandChart"></canvas>
+                <canvas id="performanceChart"></canvas>
             </div>
         </div>
         
@@ -343,22 +439,40 @@
                     <span id="finalProfit">$0</span>
                 </div>
                 <div class="performance-row">
+                    <span><strong>Total Revenue:</strong></span>
+                    <span id="finalRevenue">$0</span>
+                </div>
+                <div class="performance-row">
+                    <span><strong>Total Costs:</strong></span>
+                    <span id="finalCosts">$0</span>
+                </div>
+                <div class="performance-row">
                     <span><strong>Cups Sold:</strong></span>
                     <span id="finalSold">0</span>
+                </div>
+                <div class="performance-row">
+                    <span><strong>Waste (unsold):</strong></span>
+                    <span id="finalWaste">0 cups</span>
                 </div>
                 <div class="performance-row">
                     <span><strong>Average Price:</strong></span>
                     <span id="avgPrice">$0</span>
                 </div>
                 <div class="performance-row">
-                    <span><strong>Mastery Level:</strong></span>
-                    <span id="masteryLevel">Novice</span>
+                    <span><strong>Final Reputation:</strong></span>
+                    <span id="finalReputation">0%</span>
+                </div>
+                <div class="performance-row">
+                    <span><strong>Mastery Tier:</strong></span>
+                    <span id="masteryLevel">Bronze</span>
                 </div>
                 <div class="performance-row">
                     <span><strong>XP Earned:</strong></span>
                     <span id="xpEarned">50 XP</span>
                 </div>
             </div>
+            
+            <div id="saveStatus"></div>
             
             <button class="btn download-btn" onclick="downloadResults()">
                 📥 Download Results (PDF)
@@ -369,51 +483,111 @@
             </button>
             
             <p style="margin-top: 30px; color: #666;">
-                Submit your claim code in the <strong>BOW Finish Form</strong> to earn your XP and badges!
+                Your claim code has been automatically submitted to BOW!<br>
+                Check your email for confirmation.
             </p>
         </div>
     </div>
 
     <script>
+        // CONFIGURATION
+        const CONFIG = {
+            webAppUrl: 'YOUR_WEB_APP_URL_HERE', // TODO: Replace with your deployed Web App URL
+            simulationType: 'GAUNTLET',
+            level: 1
+        };
+        
         // GAME STATE
         const gameState = {
             round: 1,
             maxRounds: 5,
             totalProfit: 0,
+            totalRevenue: 0,
+            totalCosts: 0,
             totalSold: 0,
-            costPerCup: 0.50,
+            totalWaste: 0,
+            inventory: 0,
+            reputation: 50, // 0-100 scale
+            fixedCostPerRound: 20,
+            variableCostPerUnit: 0.50,
             history: [],
-            studentEmail: '',
+            events: [],
+            competitorPrice: 2.00,
             startTime: new Date()
         };
         
+        // MARKET EVENTS
+        const MARKET_EVENTS = [
+            {
+                round: 2,
+                type: 'negative',
+                text: 'A new competitor opened nearby and cut prices to $1.50! Customer loyalty is being tested.',
+                effect: { demandMultiplier: 0.7, competitorPrice: 1.50 }
+            },
+            {
+                round: 3,
+                type: 'positive',
+                text: 'Heat wave! Demand for cold drinks surges by 50%.',
+                effect: { demandMultiplier: 1.5 }
+            },
+            {
+                round: 4,
+                type: 'negative',
+                text: 'Supply shortage: Your variable costs increase to $0.75 per cup.',
+                effect: { variableCost: 0.75 }
+            },
+            {
+                round: 5,
+                type: 'neutral',
+                text: 'Final day: Make it count! Your reputation will heavily influence demand.',
+                effect: { reputationWeight: 2.0 }
+            }
+        ];
+        
         // CHART SETUP
-        let demandChart;
+        let performanceChart;
         
         function initChart() {
-            const ctx = document.getElementById('demandChart').getContext('2d');
-            demandChart = new Chart(ctx, {
+            const ctx = document.getElementById('performanceChart').getContext('2d');
+            performanceChart = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: [],
-                    datasets: [{
-                        label: 'Cups Sold',
-                        data: [],
-                        borderColor: '#667eea',
-                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                        tension: 0.4,
-                        fill: true
-                    }, {
-                        label: 'Your Profit',
-                        data: [],
-                        borderColor: '#f5576c',
-                        backgroundColor: 'rgba(245, 87, 108, 0.1)',
-                        tension: 0.4,
-                        fill: true
-                    }]
+                    datasets: [
+                        {
+                            label: 'Profit',
+                            data: [],
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: 'Cups Sold',
+                            data: [],
+                            borderColor: '#f5576c',
+                            backgroundColor: 'rgba(245, 87, 108, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            yAxisID: 'y1'
+                        },
+                        {
+                            label: 'Reputation',
+                            data: [],
+                            borderColor: '#28a745',
+                            backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            yAxisID: 'y2'
+                        }
+                    ]
                 },
                 options: {
                     responsive: true,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
                     plugins: {
                         title: {
                             display: true,
@@ -423,165 +597,388 @@
                     },
                     scales: {
                         y: {
-                            beginAtZero: true
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: { display: true, text: 'Profit ($)' }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: { display: true, text: 'Cups Sold' },
+                            grid: { drawOnChartArea: false }
+                        },
+                        y2: {
+                            type: 'linear',
+                            display: false,
+                            min: 0,
+                            max: 100
                         }
                     }
                 }
             });
         }
         
-        // DEMAND CALCULATION (Economic Model)
-        function calculateDemand(price) {
-            // Base demand: 100 customers
-            // Elasticity: -20 (for every $1 increase, lose 20 customers)
-            // Competitor effect: random variation
-            const baseDemand = 100;
-            const elasticity = -20;
-            const competitorEffect = Math.floor(Math.random() * 20) - 10;
+        // DEMAND CALCULATION (Complex Economic Model)
+        function calculateDemand(price, production, reputation, round) {
+            // Base demand varies by round
+            const baseDemand = 80 + (round * 5); // Grows slightly each round
             
-            const demand = Math.max(0, baseDemand + (elasticity * (price - 2.00)) + competitorEffect);
-            return Math.floor(demand);
+            // Price elasticity: More elastic as price increases
+            const priceElasticity = price < 2.0 ? -25 : -35;
+            const priceEffect = priceElasticity * (price - 2.00);
+            
+            // Reputation effect: Strong influence
+            const reputationEffect = (reputation - 50) * 0.8;
+            
+            // Competitor effect
+            const competitorEffect = (gameState.competitorPrice - price) * 15;
+            
+            // Random market variation
+            const randomVariation = Math.floor(Math.random() * 20) - 10;
+            
+            // Apply event multipliers
+            let demandMultiplier = 1.0;
+            let reputationWeight = 1.0;
+            
+            const currentEvent = MARKET_EVENTS.find(e => e.round === round);
+            if (currentEvent && currentEvent.effect.demandMultiplier) {
+                demandMultiplier = currentEvent.effect.demandMultiplier;
+            }
+            if (currentEvent && currentEvent.effect.reputationWeight) {
+                reputationWeight = currentEvent.effect.reputationWeight;
+            }
+            
+            // Calculate total demand
+            let totalDemand = (baseDemand + priceEffect + (reputationEffect * reputationWeight) + competitorEffect + randomVariation) * demandMultiplier;
+            
+            // Can't sell more than you produced
+            const actualSales = Math.min(Math.max(0, Math.floor(totalDemand)), production);
+            
+            return {
+                demand: Math.floor(totalDemand),
+                actualSales: actualSales,
+                waste: production - actualSales
+            };
+        }
+        
+        // UPDATE PREDICTIONS
+        function updatePredictions() {
+            const price = parseFloat(document.getElementById('priceSlider').value);
+            const production = parseInt(document.getElementById('productionSlider').value);
+            
+            const prediction = calculateDemand(price, production, gameState.reputation, gameState.round);
+            
+            const variableCost = gameState.variableCostPerUnit * production;
+            const totalCost = gameState.fixedCostPerRound + variableCost;
+            const revenue = price * prediction.actualSales;
+            const profit = revenue - totalCost;
+            
+            document.getElementById('predictedDemand').textContent = `~${prediction.demand} cups`;
+            document.getElementById('predictedProfit').textContent = profit.toFixed(2);
+            document.getElementById('productionCost').textContent = variableCost.toFixed(2);
         }
         
         // PRICE SLIDER UPDATE
         document.getElementById('priceSlider').addEventListener('input', function(e) {
             const price = parseFloat(e.target.value);
             document.getElementById('priceValue').textContent = `$${price.toFixed(2)}`;
-            
-            // Show predicted demand
-            const predicted = calculateDemand(price);
-            const predictedProfit = (price - gameState.costPerCup) * predicted;
+            updatePredictions();
         });
+        
+        // PRODUCTION SLIDER UPDATE
+        document.getElementById('productionSlider').addEventListener('input', function(e) {
+            const production = parseInt(e.target.value);
+            document.getElementById('productionValue').textContent = `${production} cups`;
+            updatePredictions();
+        });
+        
+        // APPLY MARKET EVENT
+        function applyMarketEvent(round) {
+            const event = MARKET_EVENTS.find(e => e.round === round);
+            if (!event) return;
+            
+            // Show event banner
+            const banner = document.getElementById('eventBanner');
+            const text = document.getElementById('eventText');
+            text.textContent = event.text;
+            banner.className = 'event-banner show ' + event.type;
+            
+            // Apply effects
+            if (event.effect.variableCost) {
+                gameState.variableCostPerUnit = event.effect.variableCost;
+            }
+            if (event.effect.competitorPrice) {
+                gameState.competitorPrice = event.effect.competitorPrice;
+            }
+            
+            gameState.events.push({ round, event: event.text });
+        }
         
         // SUBMIT ROUND
         document.getElementById('submitRound').addEventListener('click', function() {
             const price = parseFloat(document.getElementById('priceSlider').value);
+            const production = parseInt(document.getElementById('productionSlider').value);
             
-            // Calculate round results
-            const sold = calculateDemand(price);
+            // Calculate results
+            const demandResults = calculateDemand(price, production, gameState.reputation, gameState.round);
+            const sold = demandResults.actualSales;
+            const waste = demandResults.waste;
+            
+            const variableCost = gameState.variableCostPerUnit * production;
+            const totalCost = gameState.fixedCostPerRound + variableCost;
             const revenue = price * sold;
-            const cost = gameState.costPerCup * sold;
-            const profit = revenue - cost;
+            const profit = revenue - totalCost;
+            
+            // Update reputation based on performance
+            let reputationChange = 0;
+            
+            // Selling out is good (shows quality/demand)
+            if (waste === 0 && sold > 0) reputationChange += 5;
+            
+            // Competitive pricing
+            if (price <= gameState.competitorPrice + 0.5 && price >= gameState.competitorPrice - 0.5) {
+                reputationChange += 3;
+            }
+            
+            // High waste hurts reputation
+            if (waste > production * 0.3) reputationChange -= 5;
+            
+            // Profitability shows business acumen
+            if (profit > 50) reputationChange += 3;
+            
+            gameState.reputation = Math.max(0, Math.min(100, gameState.reputation + reputationChange));
             
             // Update game state
             gameState.totalProfit += profit;
+            gameState.totalRevenue += revenue;
+            gameState.totalCosts += totalCost;
             gameState.totalSold += sold;
+            gameState.totalWaste += waste;
+            gameState.inventory = waste; // Carry over to next round (simplified)
+            
             gameState.history.push({
                 round: gameState.round,
                 price: price,
+                production: production,
                 sold: sold,
-                profit: profit
+                waste: waste,
+                profit: profit,
+                revenue: revenue,
+                totalCost: totalCost,
+                reputation: gameState.reputation
             });
             
             // Update displays
             document.getElementById('profitDisplay').textContent = `$${gameState.totalProfit.toFixed(2)}`;
             document.getElementById('soldDisplay').textContent = gameState.totalSold;
+            document.getElementById('inventoryDisplay').textContent = gameState.inventory;
             document.getElementById('roundDisplay').textContent = gameState.round;
+            document.getElementById('reputationDisplay').textContent = `${Math.floor(gameState.reputation)}%`;
             
-            // Market share calculation (simulated)
-            const marketShare = Math.min(100, Math.floor((sold / 100) * 100));
-            document.getElementById('shareDisplay').textContent = `${marketShare}%`;
+            // Color-code profit card
+            const profitCard = document.getElementById('profitCard');
+            if (gameState.totalProfit < 0) {
+                profitCard.className = 'stat-card danger';
+            } else if (gameState.totalProfit < 100) {
+                profitCard.className = 'stat-card warning';
+            } else {
+                profitCard.className = 'stat-card';
+            }
             
             // Update chart
-            demandChart.data.labels.push(`R${gameState.round}`);
-            demandChart.data.datasets[0].data.push(sold);
-            demandChart.data.datasets[1].data.push(profit.toFixed(2));
-            demandChart.update();
+            performanceChart.data.labels.push(`R${gameState.round}`);
+            performanceChart.data.datasets[0].data.push(profit.toFixed(2));
+            performanceChart.data.datasets[1].data.push(sold);
+            performanceChart.data.datasets[2].data.push(gameState.reputation);
+            performanceChart.update();
             
             // Show feedback
-            showFeedback(price, sold, profit);
+            showFeedback(price, production, sold, waste, profit, reputationChange);
             
             // Check if game is over
             if (gameState.round >= gameState.maxRounds) {
-                setTimeout(() => showResults(), 2000);
+                setTimeout(() => showResults(), 3000);
             } else {
                 gameState.round++;
                 document.getElementById('controlRound').textContent = gameState.round;
-                document.getElementById('priceSlider').value = price; // Keep last price as default
+                applyMarketEvent(gameState.round);
+                updatePredictions();
             }
         });
         
         // FEEDBACK SYSTEM
-        function showFeedback(price, sold, profit) {
+        function showFeedback(price, production, sold, waste, profit, reputationChange) {
             const feedback = document.getElementById('feedback');
             const title = document.getElementById('feedbackTitle');
             const text = document.getElementById('feedbackText');
             
             title.textContent = `Round ${gameState.round} Results`;
             
-            let message = `At $${price.toFixed(2)}, you sold <strong>${sold} cups</strong> and earned <strong>$${profit.toFixed(2)} profit</strong>. `;
+            let message = `<strong>📊 Round Summary:</strong><br>`;
+            message += `You produced ${production} cups at $${price.toFixed(2)} each.<br>`;
+            message += `Sold: ${sold} cups | Waste: ${waste} cups<br>`;
+            message += `Profit: $${profit.toFixed(2)}<br>`;
+            message += `Reputation ${reputationChange >= 0 ? '+' : ''}${reputationChange} → ${Math.floor(gameState.reputation)}%<br><br>`;
             
-            // Adaptive feedback based on performance
-            if (profit > 50) {
-                message += "🔥 Excellent! You found a profitable price point!";
-                feedback.className = 'feedback show';
-            } else if (profit > 20) {
-                message += "👍 Good work! Consider experimenting with different prices.";
-                feedback.className = 'feedback show';
-            } else if (profit > 0) {
-                message += "💡 You're profitable, but there's room to grow. Try adjusting your price.";
-                feedback.className = 'feedback show';
-            } else {
-                message += "⚠️ You lost money this round. Your price might be too high or too low.";
-                feedback.className = 'feedback show negative';
+            // Strategic feedback
+            if (waste > production * 0.4) {
+                message += "⚠️ <strong>High waste!</strong> You overproduced. Consider lowering production or price next round.<br>";
+            }
+            
+            if (waste === 0 && sold > 0) {
+                message += "🔥 <strong>Sold out!</strong> Perfect inventory management—or did you leave money on the table by underproducing?<br>";
+            }
+            
+            if (profit > 60) {
+                message += "💰 <strong>Excellent profit!</strong> You're finding the sweet spot.<br>";
+            } else if (profit < 0) {
+                message += "📉 <strong>Loss this round!</strong> Your costs exceeded revenue. Adjust strategy.<br>";
+            }
+            
+            if (price > gameState.competitorPrice + 1.0) {
+                message += "💡 Your price is much higher than competitors. This limits demand unless your reputation compensates.<br>";
             }
             
             text.innerHTML = message;
+            feedback.className = profit >= 0 ? 'feedback show' : 'feedback show negative';
         }
         
         // RESULTS SCREEN
-        function showResults() {
+        async function showResults() {
             document.getElementById('gameScreen').classList.add('hidden');
             document.getElementById('resultsScreen').classList.add('show');
             
             // Calculate final stats
             const avgPrice = gameState.history.reduce((sum, r) => sum + r.price, 0) / gameState.maxRounds;
             
-            // Determine mastery level
-            let mastery, xp;
-            if (gameState.totalProfit >= 150) {
-                mastery = "Expert";
+            // Determine mastery tier based on multiple factors
+            let tier, xp;
+            const profitScore = gameState.totalProfit;
+            const wasteScore = gameState.totalWaste < 50 ? 1 : 0;
+            const reputationScore = gameState.reputation >= 60 ? 1 : 0;
+            
+            if (profitScore >= 150 && wasteScore && reputationScore) {
+                tier = "GOLD";
                 xp = 100;
-            } else if (gameState.totalProfit >= 100) {
-                mastery = "Proficient";
+            } else if (profitScore >= 100 && (wasteScore || reputationScore)) {
+                tier = "SILVER";
                 xp = 75;
-            } else if (gameState.totalProfit >= 50) {
-                mastery = "Competent";
+            } else if (profitScore >= 50) {
+                tier = "BRONZE";
                 xp = 50;
             } else {
-                mastery = "Novice";
+                tier = "BRONZE";
                 xp = 25;
             }
             
-            // Generate claim code
-            const code = generateClaimCode(mastery, xp);
-            
             // Update display
             document.getElementById('finalProfit').textContent = `$${gameState.totalProfit.toFixed(2)}`;
+            document.getElementById('finalRevenue').textContent = `$${gameState.totalRevenue.toFixed(2)}`;
+            document.getElementById('finalCosts').textContent = `$${gameState.totalCosts.toFixed(2)}`;
             document.getElementById('finalSold').textContent = gameState.totalSold;
+            document.getElementById('finalWaste').textContent = `${gameState.totalWaste} cups`;
             document.getElementById('avgPrice').textContent = `$${avgPrice.toFixed(2)}`;
-            document.getElementById('masteryLevel').textContent = mastery;
+            document.getElementById('finalReputation').textContent = `${Math.floor(gameState.reputation)}%`;
+            document.getElementById('masteryLevel').textContent = tier;
             document.getElementById('xpEarned').textContent = `${xp} XP`;
-            document.getElementById('claimCode').textContent = code;
             
-            // Store for download
-            gameState.claimCode = code;
-            gameState.mastery = mastery;
-            gameState.xp = xp;
+            // Prompt for email and submit
+            const email = prompt('Enter your email to save your results and generate your claim code:');
+            
+            if (!email || !email.includes('@')) {
+                alert('⚠️ Invalid email. Your results will not be saved to BOW system.');
+                const localCode = generateLocalCode(tier);
+                document.getElementById('claimCode').textContent = localCode;
+                gameState.claimCode = localCode;
+                return;
+            }
+            
+            // Submit to BOW system
+            await submitResults(email, tier, xp);
         }
         
-        // GENERATE CLAIM CODE
-        function generateClaimCode(mastery, xp) {
+        // SUBMIT TO BOW SYSTEM
+        async function submitResults(email, tier, xp) {
+            const saveStatus = document.getElementById('saveStatus');
+            saveStatus.innerHTML = '<p>⏳ Submitting to BOW system...</p>';
+            
+            try {
+                const response = await fetch(CONFIG.webAppUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: email,
+                        simulationType: CONFIG.simulationType,
+                        level: CONFIG.level,
+                        score: Math.floor(gameState.totalProfit),
+                        tier: tier,
+                        xp: xp,
+                        timestamp: new Date().toISOString(),
+                        gameData: {
+                            totalProfit: gameState.totalProfit,
+                            totalRevenue: gameState.totalRevenue,
+                            totalCosts: gameState.totalCosts,
+                            totalSold: gameState.totalSold,
+                            totalWaste: gameState.totalWaste,
+                            finalReputation: gameState.reputation,
+                            rounds: gameState.history,
+                            events: gameState.events
+                        }
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    document.getElementById('claimCode').textContent = result.claimCode;
+                    gameState.claimCode = result.claimCode;
+                    
+                    saveStatus.className = 'success-banner';
+                    saveStatus.innerHTML = `
+                        <strong>✅ Success!</strong><br>
+                        Your results have been saved to the BOW system.<br>
+                        XP will be automatically credited to your account.<br>
+                        Check your email for confirmation.
+                    `;
+                } else {
+                    throw new Error(result.message || 'Submission failed');
+                }
+                
+            } catch (error) {
+                console.error('Submission error:', error);
+                const localCode = generateLocalCode(tier);
+                document.getElementById('claimCode').textContent = localCode;
+                gameState.claimCode = localCode;
+                
+                saveStatus.innerHTML = `
+                    <div style="background:#f8d7da;border:2px solid #dc3545;padding:15px;border-radius:8px;margin:20px 0;">
+                        <strong>⚠️ Could not auto-submit</strong><br>
+                        Please manually submit this code in the BOW Finish Form:<br>
+                        <strong>${localCode}</strong>
+                    </div>
+                `;
+            }
+        }
+        
+        // GENERATE LOCAL CODE
+        function generateLocalCode(tier) {
             const random = Math.random().toString(36).substring(2, 8).toUpperCase();
             const score = Math.floor(gameState.totalProfit);
-            return `GAUNTLET-L1-${score}-${random}`;
+            return `GAUNTLET-L1-${tier}-${score}-${random}`;
         }
         
         // COPY CODE TO CLIPBOARD
         function copyCode() {
             const code = document.getElementById('claimCode').textContent;
-            navigator.clipboard.writeText(code);
-            alert('✅ Code copied to clipboard! Submit it in the BOW Finish Form.');
+            if (code === 'LOADING...') return;
+            
+            navigator.clipboard.writeText(code).then(() => {
+                alert('✅ Code copied to clipboard!');
+            }).catch(err => {
+                prompt('Copy this code manually:', code);
+            });
         }
         
         // DOWNLOAD PDF RESULTS
@@ -589,143 +986,35 @@
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             
-            // Add content
             doc.setFontSize(20);
-            doc.text('BOW Mastery - Market Master Results', 20, 20);
+            doc.text('BOW Mastery - Gauntlet Level 1', 20, 20);
+            doc.text('Market Master Results', 20, 30);
             
             doc.setFontSize(12);
-            doc.text(`Claim Code: ${gameState.claimCode}`, 20, 40);
-            doc.text(`Total Profit: $${gameState.totalProfit.toFixed(2)}`, 20, 50);
-            doc.text(`Cups Sold: ${gameState.totalSold}`, 20, 60);
-            doc.text(`Mastery Level: ${gameState.mastery}`, 20, 70);
-            doc.text(`XP Earned: ${gameState.xp}`, 20, 80);
+            doc.text(`Claim Code: ${gameState.claimCode}`, 20, 50);
+            doc.text(`Total Profit: $${gameState.totalProfit.toFixed(2)}`, 20, 60);
+            doc.text(`Total Revenue: $${gameState.totalRevenue.toFixed(2)}`, 20, 70);
+            doc.text(`Total Costs: $${gameState.totalCosts.toFixed(2)}`, 20, 80);
+            doc.text(`Cups Sold: ${gameState.totalSold}`, 20, 90);
+            doc.text(`Waste: ${gameState.totalWaste} cups`, 20, 100);
+            doc.text(`Final Reputation: ${Math.floor(gameState.reputation)}%`, 20, 110);
             
-            doc.text('Round-by-Round Performance:', 20, 100);
+            doc.text('Round-by-Round Performance:', 20, 130);
             gameState.history.forEach((round, i) => {
+                doc.setFontSize(10);
                 doc.text(
-                    `R${round.round}: $${round.price.toFixed(2)} → ${round.sold} sold → $${round.profit.toFixed(2)} profit`,
-                    30, 110 + (i * 10)
+                    `R${round.round}: Price $${round.price.toFixed(2)} | Produced ${round.production} | Sold ${round.sold} | Profit $${round.profit.toFixed(2)}`,
+                    25, 140 + (i * 10)
                 );
             });
             
-            // Save
-            doc.save(`BOW_MarketMaster_${gameState.claimCode}.pdf`);
+            doc.save(`BOW_Gauntlet_L1_${gameState.claimCode}.pdf`);
         }
         
         // INITIALIZE
         initChart();
+        applyMarketEvent(1);
+        updatePredictions();
     </script>
 </body>
 </html>
-// ADD THIS TO YOUR SIMULATION CODE
-
-// Configuration - UPDATE WITH YOUR WEB APP URL
-const CONFIG = {
-  webAppUrl: 'YOUR_WEB_APP_URL_HERE', // Get this after deploying
-  simulationType: 'GAUNTLET',         // Or MASTERY_MENU, BOSS_SIM
-  level: 1                            // For Gauntlet levels
-};
-
-// MODIFY YOUR showResults() FUNCTION:
-async function showResults() {
-  document.getElementById('gameScreen').classList.add('hidden');
-  document.getElementById('resultsScreen').classList.add('show');
-  
-  // Calculate final stats (your existing code)
-  const avgPrice = gameState.history.reduce((sum, r) => sum + r.price, 0) / gameState.maxRounds;
-  
-  // Determine mastery level (your existing code)
-  let mastery, xp;
-  if (gameState.totalProfit >= 150) {
-    mastery = "GOLD";
-    xp = 100;
-  } else if (gameState.totalProfit >= 100) {
-    mastery = "SILVER";
-    xp = 75;
-  } else if (gameState.totalProfit >= 50) {
-    mastery = "BRONZE";
-    xp = 50;
-  } else {
-    mastery = "NOVICE";
-    xp = 25;
-  }
-  
-  // **NEW: Prompt for email**
-  const email = prompt('Enter your email to save your results:');
-  
-  if (!email || !email.includes('@')) {
-    alert('⚠️ Invalid email. Your results will not be saved.');
-    const code = generateLocalCode(mastery, xp);
-    displayResults(code, mastery, xp, false);
-    return;
-  }
-  
-  // **NEW: Submit to your Apps Script**
-  try {
-    const response = await fetch(CONFIG.webAppUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        email: email,
-        simulationType: CONFIG.simulationType,
-        level: CONFIG.level,
-        score: gameState.totalProfit,
-        tier: mastery === 'NOVICE' ? 'BRONZE' : mastery,
-        xp: xp,
-        timestamp: new Date().toISOString(),
-        gameData: {
-          totalProfit: gameState.totalProfit,
-          totalSold: gameState.totalSold,
-          rounds: gameState.history
-        }
-      })
-    });
-    
-    const result = await response.json();
-    
-    if (result.success) {
-      displayResults(result.claimCode, result.tier, result.xp, true);
-      alert('✅ Results saved! Your claim code has been generated.');
-    } else {
-      alert(`⚠️ ${result.message || 'Could not save results. Please try again.'}`);
-      const code = generateLocalCode(mastery, xp);
-      displayResults(code, mastery, xp, false);
-    }
-    
-  } catch (error) {
-    console.error('Submission error:', error);
-    alert('⚠️ Network error. Your results will not be saved.');
-    const code = generateLocalCode(mastery, xp);
-    displayResults(code, mastery, xp, false);
-  }
-}
-
-// Helper: Generate local code if submission fails
-function generateLocalCode(mastery, xp) {
-  const random = Math.random().toString(36).substring(2, 8).toUpperCase();
-  return `LOCAL-${mastery}-${random}`;
-}
-
-// Helper: Display results
-function displayResults(code, mastery, xp, isSaved) {
-  document.getElementById('finalProfit').textContent = `$${gameState.totalProfit.toFixed(2)}`;
-  document.getElementById('finalSold').textContent = gameState.totalSold;
-  document.getElementById('avgPrice').textContent = `$${avgPrice.toFixed(2)}`;
-  document.getElementById('masteryLevel').textContent = mastery;
-  document.getElementById('xpEarned').textContent = `${xp} XP`;
-  document.getElementById('claimCode').textContent = code;
-  
-  gameState.claimCode = code;
-  gameState.mastery = mastery;
-  gameState.xp = xp;
-  
-  if (isSaved) {
-    // Show success message
-    const successMsg = document.createElement('div');
-    successMsg.style.cssText = 'background:#dcfce7;border:2px solid #22c55e;padding:15px;border-radius:8px;margin:20px 0;';
-    successMsg.innerHTML = '✅ <strong>Saved to BOW System!</strong> No need to manually submit this code.';
-    document.querySelector('.performance-summary').after(successMsg);
-  }
-}
